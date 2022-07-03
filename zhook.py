@@ -1,0 +1,64 @@
+import requests
+import openziti
+import json
+import os
+
+zitiId = os.getenv("INPUT_ZITIID")
+url = os.getenv("INPUT_WEBHOOKURL")
+
+username = os.getenv("INPUT_SENDERUSERNAME", "GitHubZ")
+icon = os.getenv("INPUT_SENDERICONULR", "https://github.com/fluidicon.png")
+channel = os.getenv("INPUT_DESTCHANNEL", "@david.hart")
+
+# Mattermost addressing
+body = {
+  "username": username, 
+  "icon_url": icon,
+  "channel": channel,
+}
+
+card = """
+# Ziti
+
+**Quick Reference**
+* [Documentation](https://openziti.github.io/)
+* [Developer Overview](https://github.com/openziti/ziti/blob/master/doc/001-overview.md)
+* [Local Development](https://github.com/openziti/ziti/blob/master/doc/002-local-dev.md)
+* [Local Deployment](https://github.com/openziti/ziti/blob/master/doc/003-local-deploy.md)
+* [Release Notes](https://github.com/openziti/ziti/blob/master/CHANGELOG.md)
+"""
+body["props"] = {
+  "card": card
+}
+
+attachment = {
+  "color": "#00FF00",
+  "pretext": "Pull request opened by [smilindave26](https://avatars.githubusercontent.com/u/19175177?v=4) in [openziti/ziti-sdk-swift](https://github.com/openziti/ziti-sdk-swift)",
+  "fallback": "Pull request opend by smilindave26 in openziti/ziti-sdk-swift",
+  "author_name": "smilindave26",
+  "author_icon": "https://avatars.githubusercontent.com/u/19175177?v=4",
+  "author_link": "https://github.com/smilindave26",
+  "title": "Update to TSDK v0.18.10 #137",
+  "title_link": "https://github.com/openziti/ziti-sdk-swift/pull/137",
+  "text": "No description provided.\n#new-pull-request",
+  "footer": "openziti-test-kitchen/ziti-mattermost-action",
+  "footer_icon": "https://github.com/openziti/branding/blob/main/images/ziggy/png/Ziggy-Gits-It.png?raw=true",
+  "thumb_url": "https://github.com/openziti/branding/blob/main/images/ziggy/png/Ziggy-Gits-It.png?raw=true",
+}
+body["attachments"] = [attachment]
+
+if __name__ == '__main__':
+  idFilename = "id.json"
+  os.environ["ZITI_IDENTITIES"] = idFilename
+  with open(idFilename, 'w') as f:
+    f.write(zitiId)
+
+  headers = {'Content-Type': 'application/json',}
+  jsonData = json.dumps(body)
+  print(f"{jsonData}")
+
+  with openziti.monkeypatch():
+    r = requests.post(url, headers=headers, data=jsonData)
+    print(f"Response Status: {r.status_code}")
+    print(r.headers)
+    print(r.content)
