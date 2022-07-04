@@ -5,6 +5,7 @@ import os
 
 zitiId = os.getenv("INPUT_ZITIID")
 url = os.getenv("INPUT_WEBHOOKURL")
+eventJson = os.getenv("INPUT_EVENTJSON")
 
 username = os.getenv("INPUT_SENDERUSERNAME", "GitHubZ")
 icon = os.getenv("INPUT_SENDERICONULR", "https://github.com/fluidicon.png")
@@ -17,16 +18,7 @@ body = {
   "channel": channel,
 }
 
-card = """
-# Ziti
-
-**Quick Reference**
-* [Documentation](https://openziti.github.io/)
-* [Developer Overview](https://github.com/openziti/ziti/blob/master/doc/001-overview.md)
-* [Local Development](https://github.com/openziti/ziti/blob/master/doc/002-local-dev.md)
-* [Local Deployment](https://github.com/openziti/ziti/blob/master/doc/003-local-deploy.md)
-* [Release Notes](https://github.com/openziti/ziti/blob/master/CHANGELOG.md)
-"""
+card = f"```json\n{eventJson}\n```"
 body["props"] = {
   "card": card
 }
