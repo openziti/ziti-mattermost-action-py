@@ -11,6 +11,8 @@ username = os.getenv("INPUT_SENDERUSERNAME", "GitHubZ")
 icon = os.getenv("INPUT_SENDERICONULR", "https://github.com/fluidicon.png")
 channel = os.getenv("INPUT_DESTCHANNEL", "@david.hart")
 
+actionRepo = os.getenv("GITHUB_ACTION_REPOSITORY", "ziti-mattermost-action")
+
 # Mattermost addressing
 body = {
   "username": username, 
@@ -33,7 +35,7 @@ attachment = {
   "title": "Update to TSDK v0.18.10 #137",
   "title_link": "https://github.com/openziti/ziti-sdk-swift/pull/137",
   "text": "No description provided.\n#new-pull-request",
-  "footer": "openziti-test-kitchen/ziti-mattermost-action",
+  "footer": actionRepo,
   "footer_icon": "https://github.com/openziti/branding/blob/main/images/ziggy/png/Ziggy-Gits-It.png?raw=true",
   "thumb_url": "https://github.com/openziti/branding/blob/main/images/ziggy/png/Ziggy-Gits-It.png?raw=true",
 }
