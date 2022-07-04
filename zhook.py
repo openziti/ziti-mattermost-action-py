@@ -40,6 +40,9 @@ attachment = {
 body["attachments"] = [attachment]
 
 if __name__ == '__main__':
+  for k, v in os.environ.items():
+    print(f'{k}={v}')
+
   idFilename = "id.json"
   os.environ["ZITI_IDENTITIES"] = idFilename
   with open(idFilename, 'w') as f:
