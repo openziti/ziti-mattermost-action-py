@@ -40,8 +40,7 @@ def createAttachment(eventJson):
     commits = eventJson["commits"]
     pushBody = f"[{len(commits)} commits]({eventJson['compare']}"
     for c in commits:
-      pushBody = f"\n[`{c['id']}`](c['url']) {c['message']}"
-
+      pushBody += f"\n[`{c['id']}`](c['url']) {c['message']}"
     attachment["text"] = pushBody
   elif eventName == "pull_request":
     prJson = eventJson["pull_request"]
