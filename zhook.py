@@ -14,35 +14,12 @@ channel = os.getenv("INPUT_DESTCHANNEL", "dev-notifications")
 actionRepo = os.getenv("GITHUB_ACTION_REPOSITORY", "ziti-mattermost-action")
 eventName = os.getenv("GITHUB_EVENT_NAME", "unspecified")
 
-# Mattermost addressing
-body = {
-  "username": username, 
-  "icon_url": icon,
-  "channel": channel,
-}
-
-card = f"```json\n{eventJson}\n```"
-body["props"] = {
-  "card": card
-}
-
-attachment = {
-  "color": "#00FF00",
-  "pretext": "Pull request opened by [smilindave26](https://avatars.githubusercontent.com/u/19175177?v=4) in [openziti/ziti-sdk-swift](https://github.com/openziti/ziti-sdk-swift)",
-  "fallback": "Pull request opend by smilindave26 in openziti/ziti-sdk-swift",
-  "author_name": "smilindave26",
-  "author_icon": "https://avatars.githubusercontent.com/u/19175177?v=4",
-  "author_link": "https://github.com/smilindave26",
-  "title": "Update to TSDK v0.18.10 #137",
-  "title_link": "https://github.com/openziti/ziti-sdk-swift/pull/137",
-  "text": "No description provided.\n#new-pull-request",
-  "footer": actionRepo,
-  "footer_icon": "https://github.com/openziti/branding/blob/main/images/ziggy/png/Ziggy-Gits-It.png?raw=true",
-  "thumb_url": "https://github.com/openziti/branding/blob/main/images/ziggy/png/Ziggy-Gits-It.png?raw=true",
-}
-body["attachments"] = [attachment]
+def addFooter(attachment) :
+  attachment["footer"] = actionRepo
+  attachment["footer_icon"] = "https://github.com/openziti/branding/blob/main/images/ziggy/png/Ziggy-Gits-It.png?raw=true"
 
 if __name__ == '__main__':
+  # Temporaily print out the env... (TODO: remove this)
   for k, v in os.environ.items():
     print(f'{k}={v}')
 
@@ -57,6 +34,33 @@ if __name__ == '__main__':
   #
   # Setup webhook JSON
   #
+  body = {
+    "username": username, 
+    "icon_url": icon,
+    "channel": channel,
+  }
+
+  attachment = {
+    "color": "#00FF00",
+    "pretext": "Pull request opened by [smilindave26](https://avatars.githubusercontent.com/u/19175177?v=4) in [openziti/ziti-sdk-swift](https://github.com/openziti/ziti-sdk-swift)",
+    "fallback": "Pull request opend by smilindave26 in openziti/ziti-sdk-swift",
+    "author_name": "smilindave26",
+    "author_icon": "https://avatars.githubusercontent.com/u/19175177?v=4",
+    "author_link": "https://github.com/smilindave26",
+    "title": "Update to TSDK v0.18.10 #137",
+    "title_link": "https://github.com/openziti/ziti-sdk-swift/pull/137",
+    "text": "No description provided.\n#new-pull-request",
+    "thumb_url": "https://github.com/openziti/branding/blob/main/images/ziggy/png/Ziggy-Gits-It.png?raw=true",
+  }
+  addFooter(attachment)
+
+  body["attachments"] = [attachment]
+
+  card = f"```json\n{eventJson}\n```"
+  body["props"] = {
+    "card": card
+  }
+
   eventName = eventName.lower()
   if eventName == "push":
     print("Gotcha PUSH")
