@@ -38,7 +38,7 @@ def createAttachment(eventJson):
 
   if eventName == "push":
     commits = eventJson["commits"]
-    pushBody = f"[{len(commits)} commits]({eventJson['compare']}"
+    pushBody = f"Pushed [{len(commits)} commit(s)]({eventJson['compare']}) to {eventJson['ref']}"
     for c in commits:
       pushBody += f"\n[`{c['id']}`](c['url']) {c['message']}"
     attachment["text"] = pushBody
