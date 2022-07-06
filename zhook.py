@@ -73,7 +73,11 @@ if __name__ == '__main__':
   print(f"{jsonData}")
 
   with openziti.monkeypatch():
-    r = requests.post(url, headers=headers, data=jsonData)
-    print(f"Response Status: {r.status_code}")
-    print(r.headers)
-    print(r.content)
+    try:
+      r = requests.post(url, headers=headers, data=jsonData)
+      print(f"Response Status: {r.status_code}")
+      print(r.headers)
+      print(r.content)
+    except Exception as e:
+      print(f"Error posting webhook: {e}")
+
