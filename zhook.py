@@ -9,9 +9,10 @@ eventJson = os.getenv("INPUT_EVENTJSON")
 
 username = os.getenv("INPUT_SENDERUSERNAME", "GitHubZ")
 icon = os.getenv("INPUT_SENDERICONULR", "https://github.com/fluidicon.png")
-channel = os.getenv("INPUT_DESTCHANNEL", "@david.hart")
+channel = os.getenv("INPUT_DESTCHANNEL", "dev-notifications")
 
 actionRepo = os.getenv("GITHUB_ACTION_REPOSITORY", "ziti-mattermost-action")
+eventName = os.getenv("GITHUB_EVENT_NAME", "unspecified")
 
 # Mattermost addressing
 body = {
@@ -45,11 +46,26 @@ if __name__ == '__main__':
   for k, v in os.environ.items():
     print(f'{k}={v}')
 
+  #
+  # Setup Ziti identity
+  #  
   idFilename = "id.json"
   os.environ["ZITI_IDENTITIES"] = idFilename
   with open(idFilename, 'w') as f:
     f.write(zitiId)
 
+  #
+  # Setup webhook JSON
+  #
+  match str.tolower(eventName):
+    case "push":
+      print("Gotcha PUSH")
+    case _:
+      print(f"Gotcha some other event {eventName}")
+
+  #
+  # Post the webhook over Ziti
+  #
   headers = {'Content-Type': 'application/json',}
   jsonData = json.dumps(body)
   print(f"{jsonData}")
