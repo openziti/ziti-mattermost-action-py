@@ -43,7 +43,7 @@ if __name__ == '__main__':
     "icon_url": icon,
     "channel": channel,
   }
-  body["text"] = f"{eventName} by [{senderJson['login']}]({senderJson['avatar_url']}) in [{repoJson['name']}]({repoJson['html_url']})"
+  body["text"] = f"{eventName} by [{senderJson['login']}]({senderJson['html_url']}) in [{repoJson['name']}]({repoJson['html_url']})"
 
   attachment = {
     "color": "#00FF00",
