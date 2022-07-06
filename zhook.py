@@ -57,11 +57,13 @@ if __name__ == '__main__':
   #
   # Setup webhook JSON
   #
-  match eventName.lower():
-    case "push":
-      print("Gotcha PUSH")
-    case _:
-      print(f"Gotcha some other event {eventName}")
+  eventName = eventName.lower()
+  if eventName == "push":
+    print("Gotcha PUSH")
+  elif eventName == "pull-request":
+    print("Gottha pull-request")
+  else
+    print(f"Gotcha some other event {eventName}")
 
   #
   # Post the webhook over Ziti
