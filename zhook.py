@@ -5,7 +5,7 @@ import os
 
 zitiId = os.getenv("INPUT_ZITIID")
 url = os.getenv("INPUT_WEBHOOKURL")
-eventJson = os.getenv("INPUT_EVENTJSON")
+eventJsonStr = os.getenv("INPUT_EVENTJSON")
 
 username = os.getenv("INPUT_SENDERUSERNAME", "GitHubZ")
 icon = os.getenv("INPUT_SENDERICONULR", "https://github.com/fluidicon.png")
@@ -34,17 +34,19 @@ if __name__ == '__main__':
   #
   # Setup webhook JSON
   #
+  eventJson = json.loads(eventJsonStr)
+  repoJson = eventJson["repository"]
+  senderJson = eventJson["sender"]
+
   body = {
     "username": username, 
     "icon_url": icon,
     "channel": channel,
-    "text": "Pull request opened by [smilindave26](https://avatars.githubusercontent.com/u/19175177?v=4) in [openziti/ziti-sdk-swift](https://github.com/openziti/ziti-sdk-swift)",
   }
+  body["text"] = f"{eventName} by [{senderJson['login']}]({senderJson['avatar_url']}) in [{repoJson['name']}]({repoJson['html_url']})"
 
   attachment = {
     "color": "#00FF00",
-    "pretext": "Pull request opened by [smilindave26](https://avatars.githubusercontent.com/u/19175177?v=4) in [openziti/ziti-sdk-swift](https://github.com/openziti/ziti-sdk-swift)",
-    "fallback": "Pull request opend by smilindave26 in openziti/ziti-sdk-swift",
     "author_name": "smilindave26",
     "author_icon": "https://avatars.githubusercontent.com/u/19175177?v=4",
     "author_link": "https://github.com/smilindave26",
@@ -57,7 +59,7 @@ if __name__ == '__main__':
 
   body["attachments"] = [attachment]
 
-  card = f"```json\n{eventJson}\n```"
+  card = f"```json\n{eventJsonStr}\n```"
   body["props"] = {
     "card": card
   }
