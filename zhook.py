@@ -38,7 +38,7 @@ if __name__ == '__main__':
     "username": username, 
     "icon_url": icon,
     "channel": channel,
-    "text": "Pull request opend by smilindave26 in openziti/ziti-sdk-swift",
+    "text": "Pull request opened by [smilindave26](https://avatars.githubusercontent.com/u/19175177?v=4) in [openziti/ziti-sdk-swift](https://github.com/openziti/ziti-sdk-swift)",
   }
 
   attachment = {
