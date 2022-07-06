@@ -23,7 +23,7 @@ def createTitle(eventJson):
   if eventName == "pull_request":
     title = f"Pull request {eventJson['action']}"
 
-  return f"{title} by [{senderJson['login']}]({senderJson['html_url']}) in [{repoJson['name']}]({repoJson['html_url']})"
+  return f"{title} by [{senderJson['login']}]({senderJson['html_url']}) in [{repoJson['full_name']}]({repoJson['html_url']})"
 
 def createAttachment(eventJson):
   senderJson = eventJson["sender"]
@@ -47,7 +47,12 @@ def createAttachment(eventJson):
     attachment["color"] = "#00FF00"
     attachment["title"] = prJson["title"]
     attachment["title_link"] = prJson["html_url"]
-    attachment["text"] = f"{prJson['body'] or ''}\n#new-pull-request"
+
+    body = prJson['body']
+    if body is not None:
+      attachment["text"] += "\n"
+    body += "#new-pull-request"
+
     attachment["thumb_url"] = "https://github.com/openziti/branding/blob/main/images/ziggy/png/Ziggy-Gits-It.png?raw=true"
   else:
     print(f"Gotcha some other event {eventName}")
