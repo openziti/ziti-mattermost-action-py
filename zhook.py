@@ -57,7 +57,7 @@ if __name__ == '__main__':
   #
   # Setup webhook JSON
   #
-  match str.tolower(eventName):
+  match str.lower(eventName):
     case "push":
       print("Gotcha PUSH")
     case _:
