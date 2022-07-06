@@ -62,7 +62,7 @@ if __name__ == '__main__':
     print("Gotcha PUSH")
   elif eventName == "pull-request":
     print("Gottha pull-request")
-  else
+  else:
     print(f"Gotcha some other event {eventName}")
 
   #
