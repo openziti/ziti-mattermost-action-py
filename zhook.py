@@ -18,15 +18,24 @@ def createTitle(eventJson):
   repoJson = eventJson["repository"]
   senderJson = eventJson["sender"]
 
-  title = f"{eventName.capitalize()}"
+  title = f"{eventName.capitalize().replace('_',' ')}"
 
-  if eventName == "pull_request":
-    title = f"Pull request {eventJson['action']}"
+  action = eventJson['action']
+  if action is not None:
+    title += f" {action}"
 
-  return f"{title} by [{senderJson['login']}]({senderJson['html_url']}) in [{repoJson['full_name']}]({repoJson['html_url']})"
+  return f"{title} by [{senderJson['login']}]({senderJson['html_url']}) in [{repoJson['full_name']}]({repoJson['html_url']})"  
 
-def createAttachment(eventJson):
+def createEventBody(eventName, eventJsonStr):
+  eventJson = json.loads(eventJsonStr)
   senderJson = eventJson["sender"]
+
+  body = {
+    "username": username, 
+    "icon_url": icon,
+    "channel": channel,
+    "props": { "card": f"```json\n{eventJsonStr}\n```" },
+  }
 
   attachment = {
     "author_name": senderJson['login'],
@@ -37,12 +46,14 @@ def createAttachment(eventJson):
   }
 
   if eventName == "push":
+    body["text"] = createTitle(eventJson)
     commits = eventJson["commits"]
     pushBody = f"Pushed [{len(commits)} commit(s)]({eventJson['compare']}) to {eventJson['ref']}"
     for c in commits:
       pushBody += f"\n[`{c['id'][:6]}`]({c['url']}) {c['message']}"
     attachment["text"] = pushBody
   elif eventName == "pull_request":
+    body["text"] = createTitle(eventJson)
     prJson = eventJson["pull_request"]
     attachment["color"] = "#00FF00"
     attachment["title"] = prJson["title"]
@@ -54,42 +65,31 @@ def createAttachment(eventJson):
     body += "#new-pull-request"
 
     attachment["thumb_url"] = "https://github.com/openziti/branding/blob/main/images/ziggy/png/Ziggy-Gits-It.png?raw=true"
+  elif eventName == "pull_request_review":
+     # TODO: set attachment body for now
+    attachment["body"] = createTitle(eventJson)
+  elif eventName == "pull_request_review_comment":
+     # TODO: set attachment body for now
+    attachment["body"] = createTitle(eventJson)
   else:
-    print(f"Gotcha some other event {eventName}")
+    attachment["body"] = createTitle(eventJson)
 
-  return attachment
+  body["attachments"] = [attachment]
+
+  return body
 
 if __name__ == '__main__':
-  # Temporaily print out the env... (TODO: remove this)
-  for k, v in os.environ.items():
-    print(f'{k}={v}')
-
-  #
   # Setup Ziti identity
-  #  
   idFilename = "id.json"
   os.environ["ZITI_IDENTITIES"] = idFilename
   with open(idFilename, 'w') as f:
     f.write(zitiId)
 
-  #
   # Setup webhook JSON
-  #
   eventName = eventName.lower()
-  eventJson = json.loads(eventJsonStr)
+  body = createEventBody(eventName, eventJsonStr)
 
-  body = {
-    "username": username, 
-    "icon_url": icon,
-    "channel": channel,
-    "props": { "card": f"```json\n{eventJsonStr}\n```" },
-  }
-  body["text"] = createTitle(eventJson)
-  body["attachments"] = [createAttachment(eventJson)]
-
-  #
   # Post the webhook over Ziti
-  #
   headers = {'Content-Type': 'application/json',}
   jsonData = json.dumps(body)
   print(f"{jsonData}")
