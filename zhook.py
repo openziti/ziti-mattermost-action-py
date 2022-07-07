@@ -69,12 +69,12 @@ def createEventBody(eventName, eventJsonStr):
     attachment["thumb_url"] = "https://github.com/openziti/branding/blob/main/images/ziggy/png/Ziggy-Gits-It.png?raw=true"
   elif eventName == "pull_request_review":
      # TODO: set attachment body for now
-    attachment["body"] = createTitle(eventJson)
+    attachment["text"] = createTitle(eventJson)
   elif eventName == "pull_request_review_comment":
      # TODO: set attachment body for now
-    attachment["body"] = createTitle(eventJson)
+    attachment["text"] = createTitle(eventJson)
   else:
-    attachment["body"] = createTitle(eventJson)
+    attachment["text"] = createTitle(eventJson)
 
   body["attachments"] = [attachment]
 
