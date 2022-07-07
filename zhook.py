@@ -20,9 +20,11 @@ def createTitle(eventJson):
 
   title = f"{eventName.capitalize().replace('_',' ')}"
 
-  action = eventJson["action"]
-  if action is not None:
+  try:
+    action = eventJson["action"]
     title += f" {action}"
+  except:
+    pass
 
   return f"{title} by [{senderJson['login']}]({senderJson['html_url']}) in [{repoJson['full_name']}]({repoJson['html_url']})"  
 
