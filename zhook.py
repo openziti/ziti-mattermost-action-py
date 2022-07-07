@@ -20,7 +20,7 @@ def createTitle(eventJson):
 
   title = f"{eventName.capitalize().replace('_',' ')}"
 
-  action = eventJson['action']
+  action = eventJson["action"]
   if action is not None:
     title += f" {action}"
 
