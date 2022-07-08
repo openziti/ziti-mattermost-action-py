@@ -30,6 +30,7 @@ def createTitle(eventJson):
 
 def createEventBody(eventName, eventJsonStr):
   eventJson = json.loads(eventJsonStr)
+  repoJson = eventJson["repository"]
   senderJson = eventJson["sender"]
 
   body = {
@@ -63,11 +64,11 @@ def createEventBody(eventName, eventJsonStr):
     attachment["title"] = prJson["title"]
     attachment["title_link"] = prJson["html_url"]
 
-    prBody = prJson['body']
-    if prBody is not None:
-      prBody += "\n"
-    prBody += "#new-pull-request"
-    attachment["text"] = prBody
+    bodyTxt = prJson['body']
+    if bodyTxt is not None:
+      bodyTxt += "\n"
+    bodyTxt += "#new-pull-request"
+    attachment["text"] = bodyTxt
 
     attachment["thumb_url"] = "https://github.com/openziti/branding/blob/main/images/ziggy/png/Ziggy-Gits-It.png?raw=true"
   
@@ -76,11 +77,12 @@ def createEventBody(eventName, eventJsonStr):
     attachment["text"] = createTitle(eventJson)
   
   elif eventName == "pull_request_review_comment":
-     # TODO: set attachment body for now
-    attachment["text"] = createTitle(eventJson)
- 
+    body["text"] = createTitle(eventJson)
+    bodyTxt = f"[Comment\({eventJson['html_url']}) in [{eventJson['pull_request']['title']}]({eventJson['pull_request_url']}):\n"
+    bodyTxt += f"{eventJson['body']}"
   else:
     attachment["text"] = createTitle(eventJson)
+    attachment["fallback"] = f"{eventName.capitalize().replace('_',' ')} by {senderJson['login']} in {repoJson['full_name']}"
 
   body["attachments"] = [attachment]
 
