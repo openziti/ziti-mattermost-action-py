@@ -83,10 +83,17 @@ def createEventBody(eventName, eventJsonStr):
   elif eventName == "pull_request_review":
     body["text"] = createTitle(eventJson)
     reviewJson = eventJson["review"]
+    reviewState = reviewJson['state']
     prJson = eventJson['pull_request']
     bodyTxt = f"[Review]({reviewJson['html_url']}) in [PR#{prJson['number']}: {prJson['title']}]({prJson['html_url']}):\n"
+    bodyTxt += f"Peview State: {reviewState}\n"
     bodyTxt += f"{reviewJson['body']}"
     attachment["text"] = bodyTxt
+
+    if reviewState == "approved":
+      attachment["color"] = "#00FF00"
+      attachment["thumb_url"] = "https://raw.githubusercontent.com/openziti/branding/main/images/ziggy/closeups/Ziggy-Dabbing.png"
+  
   else:
     attachment["color"] = "#FFFFFF"
     attachment["text"] = createTitle(eventJson)
