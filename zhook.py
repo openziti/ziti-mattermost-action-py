@@ -85,7 +85,7 @@ def createEventBody(eventName, eventJsonStr):
     reviewJson = eventJson["review"]
     reviewState = reviewJson['state']
     prJson = eventJson['pull_request']
-    bodyTxt = f"[Review]({reviewJson['html_url']}) of [PR#{prJson['number']}: {prJson['title']}]({prJson['html_url']}):\n"
+    bodyTxt = f"[Review]({reviewJson['html_url']}) of [PR#{prJson['number']}: {prJson['title']}]({prJson['html_url']})\n"
     bodyTxt += f"Review State: {reviewState.capitalize()}\n"
     bodyTxt += f"{reviewJson['body']}"
     attachment["text"] = bodyTxt
@@ -93,6 +93,14 @@ def createEventBody(eventName, eventJsonStr):
     if reviewState == "approved":
       attachment["color"] = "#00FF00"
       attachment["thumb_url"] = "https://raw.githubusercontent.com/openziti/branding/main/images/ziggy/closeups/Ziggy-Dabbing.png"
+
+  elif eventName == "delete":
+    body["text"] = createTitle(eventJson)
+    attachment["text"] = f"Deleted {eventJson['ref_type']} \"{eventJson['ref']}\""
+
+  elif eventName == "create":
+    body["text"] = createTitle(eventJson)
+    attachment["text"] = f"Created {eventJson['ref_type']} \"{eventJson['ref']}\""
   
   else:
     attachment["color"] = "#FFFFFF"
