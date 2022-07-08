@@ -78,8 +78,9 @@ def createEventBody(eventName, eventJsonStr):
   
   elif eventName == "pull_request_review_comment":
     body["text"] = createTitle(eventJson)
-    bodyTxt = f"[Comment\({eventJson['html_url']}) in [{eventJson['pull_request']['title']}]({eventJson['pull_request_url']}):\n"
-    bodyTxt += f"{eventJson['body']}"
+    commentJson = eventJson["comment"]
+    bodyTxt = f"[Comment]({commentJson['html_url']}) in [{eventJson['pull_request']['title']}]({commentJson['pull_request_url']}):\n"
+    bodyTxt += f"{commentJson['body']}"
   else:
     attachment["text"] = createTitle(eventJson)
     attachment["fallback"] = f"{eventName.capitalize().replace('_',' ')} by {senderJson['login']} in {repoJson['full_name']}"
