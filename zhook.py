@@ -85,7 +85,8 @@ def createEventBody(eventName, eventJsonStr):
     reviewJson = eventJson["review"]
     reviewState = reviewJson['state']
     prJson = eventJson['pull_request']
-    bodyTxt = f"[Review]({reviewJson['html_url']}) of [PR#{prJson['number']}: {prJson['title']}]({prJson['html_url']}) {reviewState}:\n"
+    bodyTxt = f"[Review]({reviewJson['html_url']}) of [PR#{prJson['number']}: {prJson['title']}]({prJson['html_url']}):\n"
+    bodyTxt += f"Review State: {reviewState}\n"
     bodyTxt += f"{reviewJson['body']}"
     attachment["text"] = bodyTxt
 
