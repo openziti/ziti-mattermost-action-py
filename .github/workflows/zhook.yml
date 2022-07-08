@@ -1,4 +1,4 @@
-name: /ziti-mattermost-action-py
+name: ziti-mattermost-action-py
 on:
   create:
   delete:
@@ -14,7 +14,7 @@ on:
 jobs:
   ziti-webhook:
     runs-on: ubuntu-latest
-    name: Ziti Mattermost Action
+    name: Ziti Mattermost Action - Py
     steps:
     - uses: smilindave26/ziti-mattermost-action-py@main
       with:

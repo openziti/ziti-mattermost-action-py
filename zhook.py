@@ -28,6 +28,22 @@ def createTitle(eventJson):
 
   return f"{title} by [{senderJson['login']}]({senderJson['html_url']}) in [{repoJson['full_name']}]({repoJson['html_url']})"  
 
+def addPushDetails(eventJson, body, attachment):
+  body["text"] = createTitle(eventJson)
+  forced = eventJson["forced"]
+  commits = eventJson["commits"]
+  if forced:
+    pushBody = "Force-pushed "
+  else:
+    pushBody = "Pushed "
+
+  pushBody += f"[{len(commits)} commit(s)]({eventJson['compare']}) to {eventJson['ref']}"
+  for c in commits:
+    pushBody += f"\n[`{c['id'][:6]}`]({c['url']}) {c['message']}"
+  attachment["color"] = "#000000"
+  attachment["text"] = pushBody
+
+
 def createEventBody(eventName, eventJsonStr):
   eventJson = json.loads(eventJsonStr)
   repoJson = eventJson["repository"]
@@ -49,13 +65,7 @@ def createEventBody(eventName, eventJsonStr):
   }
 
   if eventName == "push":
-    body["text"] = createTitle(eventJson)
-    commits = eventJson["commits"]
-    pushBody = f"Pushed [{len(commits)} commit(s)]({eventJson['compare']}) to {eventJson['ref']}"
-    for c in commits:
-      pushBody += f"\n[`{c['id'][:6]}`]({c['url']}) {c['message']}"
-    attachment["color"] = "#000000"
-    attachment["text"] = pushBody
+    addPushDetails(eventJson, body, attachment)
 
   elif eventName == "pull_request":
     body["text"] = createTitle(eventJson)
