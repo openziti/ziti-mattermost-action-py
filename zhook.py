@@ -53,7 +53,9 @@ def createEventBody(eventName, eventJsonStr):
     pushBody = f"Pushed [{len(commits)} commit(s)]({eventJson['compare']}) to {eventJson['ref']}"
     for c in commits:
       pushBody += f"\n[`{c['id'][:6]}`]({c['url']}) {c['message']}"
+    attachment["color"] = "#FFFFFF"
     attachment["text"] = pushBody
+
   elif eventName == "pull_request":
     body["text"] = createTitle(eventJson)
     prJson = eventJson["pull_request"]
@@ -61,18 +63,22 @@ def createEventBody(eventName, eventJsonStr):
     attachment["title"] = prJson["title"]
     attachment["title_link"] = prJson["html_url"]
 
-    body = prJson['body']
-    if body is not None:
-      attachment["text"] += "\n"
-    body += "#new-pull-request"
+    prBody = prJson['body']
+    if prBody is not None:
+      prBody += "\n"
+    prBody += "#new-pull-request"
+    attachment["text"] = prBody
 
     attachment["thumb_url"] = "https://github.com/openziti/branding/blob/main/images/ziggy/png/Ziggy-Gits-It.png?raw=true"
+  
   elif eventName == "pull_request_review":
      # TODO: set attachment body for now
     attachment["text"] = createTitle(eventJson)
+  
   elif eventName == "pull_request_review_comment":
      # TODO: set attachment body for now
     attachment["text"] = createTitle(eventJson)
+ 
   else:
     attachment["text"] = createTitle(eventJson)
 
