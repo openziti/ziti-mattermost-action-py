@@ -81,6 +81,7 @@ def createEventBody(eventName, eventJsonStr):
     commentJson = eventJson["comment"]
     bodyTxt = f"[Comment]({commentJson['html_url']}) in [{eventJson['pull_request']['title']}]({commentJson['pull_request_url']}):\n"
     bodyTxt += f"{commentJson['body']}"
+    attachment["text"] = bodyTxt
   else:
     attachment["text"] = createTitle(eventJson)
     attachment["fallback"] = f"{eventName.capitalize().replace('_',' ')} by {senderJson['login']} in {repoJson['full_name']}"
