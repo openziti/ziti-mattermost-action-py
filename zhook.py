@@ -54,7 +54,7 @@ def createEventBody(eventName, eventJsonStr):
     pushBody = f"Pushed [{len(commits)} commit(s)]({eventJson['compare']}) to {eventJson['ref']}"
     for c in commits:
       pushBody += f"\n[`{c['id'][:6]}`]({c['url']}) {c['message']}"
-    attachment["color"] = "#FFFFFF"
+    attachment["color"] = "#000000"
     attachment["text"] = pushBody
 
   elif eventName == "pull_request":
@@ -72,18 +72,23 @@ def createEventBody(eventName, eventJsonStr):
 
     attachment["thumb_url"] = "https://github.com/openziti/branding/blob/main/images/ziggy/png/Ziggy-Gits-It.png?raw=true"
   
-  elif eventName == "pull_request_review":
-     # TODO: set attachment body for now
-    attachment["text"] = createTitle(eventJson)
-  
   elif eventName == "pull_request_review_comment":
     body["text"] = createTitle(eventJson)
     commentJson = eventJson["comment"]
     prJson = eventJson['pull_request']
-    bodyTxt = f"[Comment]({commentJson['html_url']}) in [{prJson['title']}]({prJson['html_url']}):\n"
+    bodyTxt = f"[Comment]({commentJson['html_url']}) in [PR#{prJson['number']}: {prJson['title']}]({prJson['html_url']}):\n"
     bodyTxt += f"{commentJson['body']}"
     attachment["text"] = bodyTxt
+  
+  elif eventName == "pull_request_review":
+    body["text"] = createTitle(eventJson)
+    reviewJson = eventJson["review"]
+    prJson = eventJson['pull_request']
+    bodyTxt = f"[Review]({reviewJson['html_url']}) in [PR#{prJson['number']}: {prJson['title']}]({prJson['html_url']}):\n"
+    bodyTxt += f"{reviewJson['body']}"
+    attachment["text"] = bodyTxt
   else:
+    attachment["color"] = "#FFFFFF"
     attachment["text"] = createTitle(eventJson)
     attachment["fallback"] = f"{eventName.capitalize().replace('_',' ')} by {senderJson['login']} in {repoJson['full_name']}"
 
