@@ -65,7 +65,7 @@ class MattermostWebhookBody:
     except:
       pass
 
-    return f"{title} by [{login}]({loginUrl}) in [{repoName}]({repoUrl}) ([{starCount} :star:][{starUrl}])"  
+    return f"{title} by [{login}]({loginUrl}) in [{repoName}]({repoUrl}) ([{starCount} :star:]({starUrl}))"  
 
   def addPushDetails(self):
     self.body["text"] = self.createTitle()
