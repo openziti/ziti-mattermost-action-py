@@ -165,15 +165,23 @@ class MattermostWebhookBody:
 
   def addIssueCommentDetails(self):
     self.body["text"] = self.createTitle()
-    prJson = self.eventJson.get("pull_request")
+    commentJson = self.eventJson["comment"]
+    commentBody = commentJson["body"]
+    commentUrl = commentJson["html_url"]
+    issueJson = self.eventJson["issue"]
+    issueTitle = issueJson["title"]
+    issueNumber = issueJson["number"]
+
+    prJson = issueJson.get("pull_request")
     if prJson is not None:
-      print("TODO: PR Comment")
+      bodyTxt = f"[Comment]({commentUrl}) on [PR#{issueNumber}: {issueTitle}]({commentUrl})\n"
       self.attachment["color"] = self.prColor
     else:
-      print("TODO: Issue Comment")
+      bodyTxt = f"[Comment]({commentUrl}) on [Issue#{issueNumber}: {issueTitle}]({commentUrl})\n"
       self.attachment["color"] = self.issueColor
 
-    self.attachment["text"] = "TODO"
+    bodyTxt += commentBody
+    self.attachment["text"] = bodyTxt
 
   def addForkDetails(self):
     self.body["text"] = self.createTitle()
