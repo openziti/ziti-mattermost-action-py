@@ -6,9 +6,11 @@ import os
 
 class MattermostWebhookBody:
   actionRepoIcon = "https://github.com/openziti/branding/blob/main/images/ziggy/png/Ziggy-Gits-It.png?raw=true"
-  prThumbnail = "https://github.com/openziti/branding/blob/main/images/ziggy/png/Ziggy-Gits-It.png?raw=true"
+  prThumbnail = "https://github.com/openziti/branding/blob/main/images/ziggy/png/Ziggy%20Chef.png?raw=true"
   prApprovedThumbnail = "https://github.com/openziti/branding/blob/main/images/ziggy/closeups/Ziggy-Dabbing.png?raw=true"
   issueThumbnail = "https://github.com/openziti/branding/blob/main/images/ziggy/closeups/Ziggy-has-an-Idea-Closeup.png?raw=true"
+  # releaseThumbnail = "https://github.com/openziti/branding/blob/main/images/ziggy/png/Ziggy-Cash-Money-Closeup.png?raw=true"
+  releaseThumbnail = "https://github.com/openziti/branding/blob/main/images/ziggy/png/Ziggy%20Parties.png?raw=true"
 
   prColor = "#32CD32"
   pushColor = "#000000"
@@ -185,7 +187,9 @@ class MattermostWebhookBody:
 
   def addForkDetails(self):
     self.body["text"] = self.createTitle()
-    self.attachment["text"] = "TODO"
+    forkeeJson = self.eventJson["forkee"]
+    bodyText = f"Forkee [{forkeeJson['full_name']}]({forkeeJson['html_url']})"
+    self.attachment["text"] = bodyText
 
   def addReleaseDetails(self):
     self.body["text"] = self.createTitle()
