@@ -54,6 +54,8 @@ class MattermostWebhookBody:
     loginUrl = self.senderJson["html_url"]
     repoName = self.repoJson["full_name"]
     repoUrl = self.repoJson["html_url"]
+    starCount = self.repoJson["stargazers_count"]
+    starUrl = f"{repoUrl}/stargazers"
 
     title = f"{self.eventName.capitalize().replace('_',' ')}"
 
@@ -63,7 +65,7 @@ class MattermostWebhookBody:
     except:
       pass
 
-    return f"{title} by [{login}]({loginUrl}) in [{repoName}]({repoUrl})"  
+    return f"{title} by [{login}]({loginUrl}) in [{repoName}]({repoUrl}) \([{starCount} :star:][{starUrl}]\)"  
 
   def addPushDetails(self):
     self.body["text"] = self.createTitle()
@@ -128,19 +130,33 @@ class MattermostWebhookBody:
 
   def addIssuesDetails(self):
     self.body["text"] = self.createTitle()
-    action = self.eventJson["action"]
     issueJson = self.eventJson["issue"]
     issueTitle = issueJson["title"]
     issueUrl = issueJson["html_url"]
     issueBody = issueJson["body"]
 
     bodyText = f"Issue [{issueTitle}]({issueUrl})\n"
-    bodyText += f"{issueBody}"
+    try:
+      assignees = issueJson["assignees"]
+      bodyText += "Assignees:"
+      for a in assignees:
+        bodyText += f" [{a['login']}]({a['html_url']}),"
+      bodyText = bodyText.rstrip(',')
+      bodyText += "\n"
+    except:
+      pass
 
+    bodyText += f"{issueBody}"
     self.attachment["text"] = bodyText
 
   def addIssueCommentDetails(self):
     self.body["text"] = self.createTitle()
+    prJson = self.eventJson.get("pull_request")
+    if prJson is not None:
+      print("Gotcha PR Comment")
+    else:
+      print("Gotcha Issue Comment")
+
     self.attachment["text"] = "TODO"
 
   def addForkDetails(self):
