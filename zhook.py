@@ -45,27 +45,28 @@ class MattermostWebhookBody:
       "footer_icon": self.actionRepoIcon,
     }
 
-    if eventName == "push": 
+    if eventName == "push":
       self.addPushDetails()
-    elif eventName == "pull_request": 
+    elif eventName == "pull_request":
       self.addPullRequestDetails()
-    elif eventName == "pull_request_review_comment": 
+    elif eventName == "pull_request_review_comment":
       self.addPullRequestReviewCommentDetails()
-    elif eventName == "pull_request_review": 
+    elif eventName == "pull_request_review":
       self.addPullRequestReviewDetails()
-    elif eventName == "delete": 
+    elif eventName == "delete":
       self.addDeleteDetails()
-    elif eventName == "create": 
+    elif eventName == "create":
       self.addCreateDetails()
-    elif eventName == "issues": 
+    elif eventName == "issues":
       self.addIssuesDetails()
-    elif eventName == "issue_comment": 
+    elif eventName == "issue_comment":
       self.addIssueCommentDetails()
-    elif eventName == "fork": 
+    elif eventName == "fork":
       self.addForkDetails()
-    elif eventName == "release": 
+    elif eventName == "release":
       self.addReleaseDetails()
-    else: self.addDefaultDetails()
+    else:
+      self.addDefaultDetails()
 
     self.body["attachments"] = [self.attachment]
 
@@ -82,10 +83,10 @@ class MattermostWebhookBody:
     try:
       action = self.eventJson["action"]
       title += f" {action}"
-    except:
+    except Exception:
       pass
 
-    # return f"{title} by [{login}]({loginUrl}) in [{repoName}]({repoUrl}) ([{starCount} :star:]({starUrl}))"  
+    # return f"{title} by [{login}]({loginUrl}) in [{repoName}]({repoUrl}) ([{starCount} :star:]({starUrl}))"
     return f"{title} by [{login}]({loginUrl}) in [{repoName}]({repoUrl})"  
 
   def addPushDetails(self):
@@ -121,7 +122,7 @@ class MattermostWebhookBody:
 
     self.attachment["color"] = self.prColor
     self.attachment["thumb_url"] = self.prThumbnail
-  
+
   def addPullRequestReviewCommentDetails(self):
     self.body["text"] = self.createTitle()
     commentJson = self.eventJson["comment"]
@@ -130,7 +131,7 @@ class MattermostWebhookBody:
 
     try:
       bodyTxt += f"{commentJson['body']}"
-    except:
+    except Exception:
       pass
 
     self.attachment["color"] = self.prColor
@@ -178,7 +179,7 @@ class MattermostWebhookBody:
         bodyText += f" [{a['login']}]({a['html_url']}),"
       bodyText = bodyText.rstrip(',')
       bodyText += "\n"
-    except:
+    except Exception:
       pass
 
     bodyText += f"{issueBody}"
@@ -249,19 +250,19 @@ class MattermostWebhookBody:
     self.attachment["text"] = self.createTitle()
     self.attachment["fallback"] = f"{eventName.capitalize().replace('_',' ')} by {self.senderJson['login']} in {self.repoJson['full_name']}"
 
-  def dumpJson(self): 
+  def dumpJson(self):
     return json.dumps(self.body)
 
 
 if __name__ == '__main__':
-  zitiId       = os.getenv("INPUT_ZITIID")
-  url          = os.getenv("INPUT_WEBHOOKURL")
+  zitiId = os.getenv("INPUT_ZITIID")
+  url = os.getenv("INPUT_WEBHOOKURL")
   eventJsonStr = os.getenv("INPUT_EVENTJSON")
-  username     = os.getenv("INPUT_SENDERUSERNAME")
-  icon         = os.getenv("INPUT_SENDERICONURL")
-  channel      = os.getenv("INPUT_DESTCHANNEL")
-  actionRepo   = os.getenv("GITHUB_ACTION_REPOSITORY")
-  eventName    = os.getenv("GITHUB_EVENT_NAME")
+  username = os.getenv("INPUT_SENDERUSERNAME")
+  icon = os.getenv("INPUT_SENDERICONURL")
+  channel = os.getenv("INPUT_DESTCHANNEL")
+  actionRepo = os.getenv("GITHUB_ACTION_REPOSITORY")
+  eventName = os.getenv("GITHUB_EVENT_NAME")
 
   # Setup Ziti identity
   idFilename = "id.json"
@@ -277,7 +278,7 @@ if __name__ == '__main__':
     sys.exit(-1)
 
   # Post the webhook over Ziti
-  headers = {'Content-Type': 'application/json',}
+  headers = {'Content-Type': 'application/json'}
   data = mwb.dumpJson()
   print(f"{data}")
 
