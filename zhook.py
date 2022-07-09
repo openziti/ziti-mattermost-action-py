@@ -10,7 +10,7 @@ class MattermostWebhookBody:
   prApprovedThumbnail = "https://github.com/openziti/branding/blob/main/images/ziggy/closeups/Ziggy-Dabbing.png?raw=true"
   issueThumbnail = "https://github.com/openziti/branding/blob/main/images/ziggy/closeups/Ziggy-has-an-Idea-Closeup.png?raw=true"
 
-  prColor = "#00FF00"
+  prColor = "#008000"
   pushColor = "#000000"
   issueColor = "#FFA500"
   todoColor = "#FFFFFF"
