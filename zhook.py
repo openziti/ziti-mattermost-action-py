@@ -213,7 +213,7 @@ class MattermostWebhookBody:
     if isDraft:
       bodyText = "Draft release"
     elif isPrerelease:
-      bodyText = "Prerlease "
+      bodyText = "Prerelease "
     else:
       bodyText = "Release"
 
