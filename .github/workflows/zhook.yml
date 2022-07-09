@@ -23,3 +23,16 @@ jobs:
         eventJson: ${{ toJson(github.event) }}
         senderUsername: "GitHubZ"
         destChannel: "@david.hart"
+
+  just-pull-requests:
+    runs-on: ubuntu-latests
+    name: Ziti Mattermost Action - Just Pull Requests
+    steps:
+    - uses: smilindave26/ziti-mattermost-action-py@main
+      with:
+        zitiId: ${{ secrets.ZITI_MATTERMOST_IDENTITY }}
+        webhookUrl: ${{ secrets.ZHOOK_URL }}
+        eventJson: ${{ toJson(github.event) }}
+        senderUsername: "GitHubZ"
+        destChannel: "github-just-pull-requests"
+      if: github.event_name == 'pull_request'
