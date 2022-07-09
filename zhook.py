@@ -113,7 +113,12 @@ class MattermostWebhookBody:
     commentJson = self.eventJson["comment"]
     prJson = self.eventJson['pull_request']
     bodyTxt = f"[Comment]({commentJson['html_url']}) in [PR#{prJson['number']}: {prJson['title']}]({prJson['html_url']}):\n"
-    bodyTxt += f"{commentJson['body']}"
+
+    try:
+      bodyTxt += f"{commentJson['body']}"
+    except:
+      pass
+    
     self.attachment["color"] = self.prColor
     self.attachment["text"] = bodyTxt
 
