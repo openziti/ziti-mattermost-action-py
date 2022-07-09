@@ -10,6 +10,7 @@ on:
   push:
   fork:
   release:
+    types: [released]
 
 jobs:
   ziti-webhook:
