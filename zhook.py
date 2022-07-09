@@ -13,8 +13,9 @@ class MattermostWebhookBody:
   releaseThumbnail = "https://github.com/openziti/branding/blob/main/images/ziggy/png/Ziggy%20Parties.png?raw=true"
 
   prColor = "#32CD32"
-  pushColor = "#000000"
+  pushColor = "#708090"
   issueColor = "#FFA500"
+  releaseColor = "$F000000"
   todoColor = "#FFFFFF"
 
   def __init__(self, username, icon, channel, eventName, eventJsonStr, actionRepo):
@@ -200,7 +201,37 @@ class MattermostWebhookBody:
 
   def addReleaseDetails(self):
     self.body["text"] = self.createTitle()
-    self.attachment["text"] = "TODO"
+    action = self.eventJson["action"]
+    releaseJson = self.eventJson["release"]
+    isDraft = releaseJson["draft"]
+    isPrerelease = releaseJson["prerelease"]
+
+    self.attachment["color"] = self.releaseColor
+    if action == "released":
+      self.attachment["thumb_url"] = self.releaseThumbnail
+
+    if isDraft:
+      bodyText = "Draft release"
+    elif isPrerelease:
+      bodyText = "Prerlease "
+    else:
+      bodyText = "Release"
+
+    releaseTitle = releaseJson.get("title")
+    tagName = releaseJson["tag_name"]
+
+    if releaseTitle is None:
+      releaseTitle = f" {tagName}"
+    else:
+      releaseTitle += f" ({tagName})"
+
+    bodyText += f" [{releaseTitle}]({releaseJson['html_url']})"
+
+    releaseBody = releaseJson.get("body")
+    if releaseBody is not None:
+      bodyText += f"\n{releaseBody}"
+
+    self.attachment["text"] = bodyText
 
   def addDefaultDetails(self):
     self.attachment["color"] = self.todoColor
