@@ -7,7 +7,13 @@ import os
 class MattermostWebhookBody:
   actionRepoIcon = "https://github.com/openziti/branding/blob/main/images/ziggy/png/Ziggy-Gits-It.png?raw=true"
   prThumbnail = "https://github.com/openziti/branding/blob/main/images/ziggy/png/Ziggy-Gits-It.png?raw=true"
-  prApprovedThumbnail = "https://raw.githubusercontent.com/openziti/branding/main/images/ziggy/closeups/Ziggy-Dabbing.png"
+  prApprovedThumbnail = "https://github.com/openziti/branding/blob/main/images/ziggy/closeups/Ziggy-Dabbing.png?raw=true"
+  issueThumbnail = "https://github.com/openziti/branding/blob/main/images/ziggy/closeups/Ziggy-has-an-Idea-Closeup.png?raw=true"
+
+  prColor = "#00FF00"
+  pushColor = "#000000"
+  issueColor = "#FFA500"
+  todoColor = "#FFFFFF"
 
   def __init__(self, username, icon, channel, eventName, eventJsonStr, actionRepo):
     self.username = username
@@ -81,13 +87,13 @@ class MattermostWebhookBody:
     pushBody += f"[{len(commits)} commit(s)]({self.eventJson['compare']}) to {self.eventJson['ref']}"
     for c in commits:
       pushBody += f"\n[`{c['id'][:6]}`]({c['url']}) {c['message']}"
-    self.attachment["color"] = "#000000"
+    self.attachment["color"] = self.pushColor
     self.attachment["text"] = pushBody
 
   def addPullRequestDetails(self):
     self.body["text"] = self.createTitle()
     prJson = self.eventJson["pull_request"]
-    self.attachment["color"] = "#00FF00"
+    self.attachment["color"] = self.prColor
     self.attachment["title"] = prJson["title"]
     self.attachment["title_link"] = prJson["html_url"]
 
@@ -97,6 +103,7 @@ class MattermostWebhookBody:
     bodyTxt += "#new-pull-request"
     self.attachment["text"] = bodyTxt
 
+    self.attachment["color"] = self.prColor
     self.attachment["thumb_url"] = self.prThumbnail
   
   def addPullRequestReviewCommentDetails(self):
@@ -105,6 +112,7 @@ class MattermostWebhookBody:
     prJson = self.eventJson['pull_request']
     bodyTxt = f"[Comment]({commentJson['html_url']}) in [PR#{prJson['number']}: {prJson['title']}]({prJson['html_url']}):\n"
     bodyTxt += f"{commentJson['body']}"
+    self.attachment["color"] = self.prColor
     self.attachment["text"] = bodyTxt
 
   def addPullRequestReviewDetails(self):
@@ -117,8 +125,8 @@ class MattermostWebhookBody:
     bodyTxt += f"{reviewJson['body']}"
     self.attachment["text"] = bodyTxt
 
+    self.attachment["color"] = self.prColor
     if reviewState == "approved":
-      self.attachment["color"] = "#00FF00"
       self.attachment["thumb_url"] = self.prApprovedThumbnail
 
   def addDeleteDetails(self):
@@ -131,10 +139,15 @@ class MattermostWebhookBody:
 
   def addIssuesDetails(self):
     self.body["text"] = self.createTitle()
+    action = self.eventJson["action"]
     issueJson = self.eventJson["issue"]
     issueTitle = issueJson["title"]
     issueUrl = issueJson["html_url"]
     issueBody = issueJson["body"]
+
+    self.attachment["color"] = self.issueColor
+    if action == "created":
+      self.attachment["thumb_url"] = self.issueThumbnail
 
     bodyText = f"Issue [{issueTitle}]({issueUrl})\n"
     try:
@@ -154,9 +167,11 @@ class MattermostWebhookBody:
     self.body["text"] = self.createTitle()
     prJson = self.eventJson.get("pull_request")
     if prJson is not None:
-      print("Gotcha PR Comment")
+      print("TODO: PR Comment")
+      self.attachment["color"] = self.prColor
     else:
-      print("Gotcha Issue Comment")
+      print("TODO: Issue Comment")
+      self.attachment["color"] = self.issueColor
 
     self.attachment["text"] = "TODO"
 
@@ -169,7 +184,7 @@ class MattermostWebhookBody:
     self.attachment["text"] = "TODO"
 
   def addDefaultDetails(self):
-    self.attachment["color"] = "#FFFFFF"
+    self.attachment["color"] = self.todoColor
     self.attachment["text"] = self.createTitle()
     self.attachment["fallback"] = f"{eventName.capitalize().replace('_',' ')} by {self.senderJson['login']} in {self.repoJson['full_name']}"
 
