@@ -102,6 +102,9 @@ class MattermostWebhookBody:
     bodyTxt = prJson['body']
     if bodyTxt is not None:
       bodyTxt += "\n"
+    else:
+      bodyTxt = ""
+
     bodyTxt += "#new-pull-request"
     self.attachment["text"] = bodyTxt
 
@@ -113,7 +116,12 @@ class MattermostWebhookBody:
     commentJson = self.eventJson["comment"]
     prJson = self.eventJson['pull_request']
     bodyTxt = f"[Comment]({commentJson['html_url']}) in [PR#{prJson['number']}: {prJson['title']}]({prJson['html_url']}):\n"
-    bodyTxt += f"{commentJson['body']}"
+
+    try:
+      bodyTxt += f"{commentJson['body']}"
+    except:
+      pass
+
     self.attachment["color"] = self.prColor
     self.attachment["text"] = bodyTxt
 
@@ -220,11 +228,12 @@ if __name__ == '__main__':
     f.write(zitiId)
 
   # Create webhook body
-  try:
-    mwb = MattermostWebhookBody(username, icon, channel, eventName, eventJsonStr, actionRepo)
-  except Exception as e:
-    print(f"Exception creating webhook body: {e}")
-    sys.exit(-1)
+  # try:
+  #   mwb = MattermostWebhookBody(username, icon, channel, eventName, eventJsonStr, actionRepo)
+  # except Exception as e:
+  #   print(f"Exception creating webhook body: {e}")
+  #   sys.exit(-1)
+  mwb = MattermostWebhookBody(username, icon, channel, eventName, eventJsonStr, actionRepo)
 
   # Post the webhook over Ziti
   headers = {'Content-Type': 'application/json',}
