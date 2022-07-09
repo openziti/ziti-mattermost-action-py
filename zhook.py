@@ -15,7 +15,7 @@ class MattermostWebhookBody:
   prColor = "#32CD32"
   pushColor = "#708090"
   issueColor = "#FFA500"
-  releaseColor = "$F000000"
+  releaseColor = "#DB7093"
   todoColor = "#FFFFFF"
 
   def __init__(self, username, icon, channel, eventName, eventJsonStr, actionRepo):
