@@ -25,7 +25,7 @@ jobs:
         destChannel: "@david.hart"
 
   just-pull-requests:
-    runs-on: ubuntu-latests
+    runs-on: ubuntu-latest
     name: Ziti Mattermost Action - Just Pull Requests
     steps:
     - uses: smilindave26/ziti-mattermost-action-py@main
