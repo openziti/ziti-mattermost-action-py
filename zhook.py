@@ -217,7 +217,7 @@ class MattermostWebhookBody:
     else:
       bodyText = "Release"
 
-    releaseTitle = releaseJson.get("title")
+    releaseTitle = releaseJson.get("name")
     tagName = releaseJson["tag_name"]
 
     if releaseTitle is None:
