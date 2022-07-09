@@ -228,11 +228,12 @@ if __name__ == '__main__':
     f.write(zitiId)
 
   # Create webhook body
-  try:
-    mwb = MattermostWebhookBody(username, icon, channel, eventName, eventJsonStr, actionRepo)
-  except Exception as e:
-    print(f"Exception creating webhook body: {e}")
-    sys.exit(-1)
+  # try:
+  #   mwb = MattermostWebhookBody(username, icon, channel, eventName, eventJsonStr, actionRepo)
+  # except Exception as e:
+  #   print(f"Exception creating webhook body: {e}")
+  #   sys.exit(-1)
+  mwb = MattermostWebhookBody(username, icon, channel, eventName, eventJsonStr, actionRepo)
 
   # Post the webhook over Ziti
   headers = {'Content-Type': 'application/json',}
