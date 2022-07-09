@@ -102,6 +102,9 @@ class MattermostWebhookBody:
     bodyTxt = prJson['body']
     if bodyTxt is not None:
       bodyTxt += "\n"
+    else:
+      bodyTxt = ""
+
     bodyTxt += "#new-pull-request"
     self.attachment["text"] = bodyTxt
 
@@ -118,7 +121,7 @@ class MattermostWebhookBody:
       bodyTxt += f"{commentJson['body']}"
     except:
       pass
-    
+
     self.attachment["color"] = self.prColor
     self.attachment["text"] = bodyTxt
 
