@@ -15,4 +15,4 @@ jobs:
       - name: Lint
         run: |
           pip install flake8
-          flake8 zhook.py
+          flake8 --ignore E111,E501 zhook.py

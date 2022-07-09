@@ -4,6 +4,7 @@ import json
 import sys
 import os
 
+
 class MattermostWebhookBody:
   actionRepoIcon = "https://github.com/openziti/branding/blob/main/images/ziggy/png/Ziggy-Gits-It.png?raw=true"
   prThumbnail = "https://github.com/openziti/branding/blob/main/images/ziggy/png/Ziggy%20Chef.png?raw=true"
@@ -30,10 +31,10 @@ class MattermostWebhookBody:
     self.senderJson = self.eventJson["sender"]
 
     self.body = {
-      "username": self.username, 
+      "username": self.username,
       "icon_url": self.icon,
       "channel": self.channel,
-      "props": { "card": f"```json\n{self.eventJsonStr}\n```" },
+      "props": {"card": f"```json\n{self.eventJsonStr}\n```"},
     }
 
     self.attachment = {
@@ -44,16 +45,26 @@ class MattermostWebhookBody:
       "footer_icon": self.actionRepoIcon,
     }
 
-    if eventName == "push": self.addPushDetails()
-    elif eventName == "pull_request": self.addPullRequestDetails()
-    elif eventName == "pull_request_review_comment": self.addPullRequestReviewCommentDetails()
-    elif eventName == "pull_request_review": self.addPullRequestReviewDetails()
-    elif eventName == "delete": self.addDeleteDetails()
-    elif eventName == "create": self.addCreateDetails()
-    elif eventName == "issues": self.addIssuesDetails()
-    elif eventName == "issue_comment": self.addIssueCommentDetails()
-    elif eventName == "fork": self.addForkDetails()
-    elif eventName == "release": self.addReleaseDetails()
+    if eventName == "push": 
+      self.addPushDetails()
+    elif eventName == "pull_request": 
+      self.addPullRequestDetails()
+    elif eventName == "pull_request_review_comment": 
+      self.addPullRequestReviewCommentDetails()
+    elif eventName == "pull_request_review": 
+      self.addPullRequestReviewDetails()
+    elif eventName == "delete": 
+      self.addDeleteDetails()
+    elif eventName == "create": 
+      self.addCreateDetails()
+    elif eventName == "issues": 
+      self.addIssuesDetails()
+    elif eventName == "issue_comment": 
+      self.addIssueCommentDetails()
+    elif eventName == "fork": 
+      self.addForkDetails()
+    elif eventName == "release": 
+      self.addReleaseDetails()
     else: self.addDefaultDetails()
 
     self.body["attachments"] = [self.attachment]
@@ -240,6 +251,7 @@ class MattermostWebhookBody:
 
   def dumpJson(self): 
     return json.dumps(self.body)
+
 
 if __name__ == '__main__':
   zitiId       = os.getenv("INPUT_ZITIID")
