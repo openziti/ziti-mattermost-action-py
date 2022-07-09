@@ -128,7 +128,16 @@ class MattermostWebhookBody:
 
   def addIssuesDetails(self):
     self.body["text"] = self.createTitle()
-    self.attachment["text"] = "TODO"
+    action = self.eventJson["action"]
+    issueJson = self.eventJson["issue"]
+    issueTitle = issueJson["title"]
+    issueUrl = issueJson["html_url"]
+    issueBody = issueJson["body"]
+
+    bodyText = f"Issue [{issueTitle}]({issueUrl})\n"
+    bodyText += f"{issueBody}"
+
+    self.attachment["text"] = bodyText
 
   def addIssueCommentDetails(self):
     self.body["text"] = self.createTitle()
