@@ -146,13 +146,13 @@ class MattermostWebhookBody:
     issueBody = issueJson["body"]
 
     self.attachment["color"] = self.issueColor
-    if action == "created":
+    if action == "created" or action == "opened":
       self.attachment["thumb_url"] = self.issueThumbnail
 
     bodyText = f"Issue [{issueTitle}]({issueUrl})\n"
     try:
       assignees = issueJson["assignees"]
-      bodyText += "Assignees:"
+      bodyText += "Assignee(s):"
       for a in assignees:
         bodyText += f" [{a['login']}]({a['html_url']}),"
       bodyText = bodyText.rstrip(',')
