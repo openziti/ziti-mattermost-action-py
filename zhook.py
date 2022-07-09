@@ -207,7 +207,7 @@ class MattermostWebhookBody:
     isPrerelease = releaseJson["prerelease"]
 
     self.attachment["color"] = self.releaseColor
-    if action == "published":
+    if action == "released":
       self.attachment["thumb_url"] = self.releaseThumbnail
 
     if isDraft:
