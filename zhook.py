@@ -54,8 +54,8 @@ class MattermostWebhookBody:
     loginUrl = self.senderJson["html_url"]
     repoName = self.repoJson["full_name"]
     repoUrl = self.repoJson["html_url"]
-    starCount = self.repoJson["stargazers_count"]
-    starUrl = f"{repoUrl}/stargazers"
+    # starCount = self.repoJson["stargazers_count"]
+    # starUrl = f"{repoUrl}/stargazers"
 
     title = f"{self.eventName.capitalize().replace('_',' ')}"
 
@@ -181,7 +181,7 @@ if __name__ == '__main__':
   url          = os.getenv("INPUT_WEBHOOKURL")
   eventJsonStr = os.getenv("INPUT_EVENTJSON")
   username     = os.getenv("INPUT_SENDERUSERNAME")
-  icon         = os.getenv("INPUT_SENDERICONULR")
+  icon         = os.getenv("INPUT_SENDERICONURL")
   channel      = os.getenv("INPUT_DESTCHANNEL")
   actionRepo   = os.getenv("GITHUB_ACTION_REPOSITORY")
   eventName    = os.getenv("GITHUB_EVENT_NAME")
