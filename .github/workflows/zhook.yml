@@ -18,13 +18,13 @@ jobs:
     name: Ziti Mattermost Action - Py
     steps:
     - name: Post to dev-notifications
-      uses: smilindave26/ziti-mattermost-action-py@main
+      uses: openziti/ziti-mattermost-action-py@main
       with:
         zitiId: ${{ secrets.ZITI_MATTERMOST_IDENTITY }}
         webhookUrl: ${{ secrets.ZHOOK_URL }}
         eventJson: ${{ toJson(github.event) }}
         senderUsername: "GitHubZ"
-        destChannel: "@david.hart"
+        destChannel: "dev-notifications"
     # - name: Re-post Pull Requests to github-just-pull-requests
     #   uses: smilindave26/ziti-mattermost-action-py@main
     #   if: github.event_name == 'pull_request'
