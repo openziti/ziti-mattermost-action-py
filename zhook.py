@@ -112,15 +112,37 @@ class MattermostWebhookBody:
   def addPullRequestDetails(self):
     self.body["text"] = self.createTitle()
     prJson = self.eventJson["pull_request"]
+    headJson = prJson["head"]
+    baseJson = prJson["base"]
     self.attachment["color"] = self.prColor
-    self.attachment["title"] = prJson["title"]
-    self.attachment["title_link"] = prJson["html_url"]
+    bodyTxt = f"Pull request [PR#{prJson['number']}: {prJson['title']}]({prJson['html_url']}):\n"
+    bodyTxt += f"{headJson['label']} -> {baseJson['label']}"
 
-    # bodyTxt = prJson['body']
-    # if bodyTxt is not None:
-    #   self.attachment["text"] = bodyTxt
+    try:
+      reviewers = prJson["requested_reviewers"]
+      bodyText += "Reviewer(s):"
+      for r in reviewers:
+        bodyText += f" [{r['login']}]({r['html_url']}),"
+    except Exception:
+      pass
+
+    try:
+      reviewers = prJson["requested_teams"]
+      for r in reviewers:
+        bodyText += f" [{r['name']}]({r['html_url']}),"
+    except Exception:
+      pass
+
+    bodyText = bodyText.rstrip(',')
+    bodyText += "\n"
+
+    try:
+      bodyTxt += f"{prJson['body']}"
+    except Exception:
+      pass
 
     self.attachment["color"] = self.prColor
+    self.attachment["text"] = bodyTxt
     self.attachment["thumb_url"] = self.prThumbnail
 
   def addPullRequestReviewCommentDetails(self):
