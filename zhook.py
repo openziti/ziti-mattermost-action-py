@@ -116,9 +116,9 @@ class MattermostWebhookBody:
     self.attachment["title"] = prJson["title"]
     self.attachment["title_link"] = prJson["html_url"]
 
-    bodyTxt = prJson['body']
-    if bodyTxt is not None:
-      self.attachment["text"] = bodyTxt
+    # bodyTxt = prJson['body']
+    # if bodyTxt is not None:
+    #   self.attachment["text"] = bodyTxt
 
     self.attachment["color"] = self.prColor
     self.attachment["thumb_url"] = self.prThumbnail
