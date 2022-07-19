@@ -143,6 +143,8 @@ class MattermostWebhookBody:
     except Exception:
       pass
 
+    bodyTxt += "\n#new-pull-request"
+
     self.attachment["color"] = self.prColor
     self.attachment["text"] = bodyTxt
     self.attachment["thumb_url"] = self.prThumbnail
@@ -158,7 +160,6 @@ class MattermostWebhookBody:
     except Exception:
       pass
     
-    bodyTxt += "\n#new-pull-request"
     self.attachment["color"] = self.prColor
     self.attachment["text"] = bodyTxt
 
