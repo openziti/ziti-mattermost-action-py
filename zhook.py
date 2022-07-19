@@ -120,21 +120,21 @@ class MattermostWebhookBody:
 
     try:
       reviewers = prJson["requested_reviewers"]
-      bodyText += "Reviewer(s):"
+      bodyTxt += "Reviewer(s):"
       for r in reviewers:
-        bodyText += f" [{r['login']}]({r['html_url']}),"
+        bodyTxt += f" [{r['login']}]({r['html_url']}),"
     except Exception:
       pass
 
     try:
       reviewers = prJson["requested_teams"]
       for r in reviewers:
-        bodyText += f" [{r['name']}]({r['html_url']}),"
+        bodyTxt += f" [{r['name']}]({r['html_url']}),"
     except Exception:
       pass
 
-    bodyText = bodyText.rstrip(',')
-    bodyText += "\n"
+    bodyTxt = bodyTxt.rstrip(',')
+    bodyTxt += "\n"
 
     try:
       bodyTxt += f"{prJson['body']}"
