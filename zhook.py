@@ -7,11 +7,11 @@ import os
 
 class MattermostWebhookBody:
   actionRepoIcon = "https://github.com/openziti/branding/blob/main/images/ziggy/png/Ziggy-Gits-It.png?raw=true"
-  prThumbnail = "https://github.com/openziti/branding/blob/main/images/ziggy/png/Ziggy%20Chef.png?raw=true"
+  prThumbnail = "https://github.com/openziti/branding/blob/main/images/ziggy/closeups/Ziggy-Chef-Closeup.png?raw=true"
   prApprovedThumbnail = "https://github.com/openziti/branding/blob/main/images/ziggy/closeups/Ziggy-Dabbing.png?raw=true"
   issueThumbnail = "https://github.com/openziti/branding/blob/main/images/ziggy/closeups/Ziggy-has-an-Idea-Closeup.png?raw=true"
   # releaseThumbnail = "https://github.com/openziti/branding/blob/main/images/ziggy/png/Ziggy-Cash-Money-Closeup.png?raw=true"
-  releaseThumbnail = "https://github.com/openziti/branding/blob/main/images/ziggy/png/Ziggy%20Parties.png?raw=true"
+  releaseThumbnail = "https://github.com/openziti/branding/blob/main/images/ziggy/closeups/Ziggy-Parties-Closeup.png?raw=true"
 
   prColor = "#32CD32"
   pushColor = "#708090"
@@ -31,18 +31,22 @@ class MattermostWebhookBody:
     self.senderJson = self.eventJson["sender"]
 
     self.body = {
-      "username": self.username,
-      "icon_url": self.icon,
+      # "username": self.username,
+      # "icon_url": self.icon,
+      "username": self.senderJson['login'],
+      "icon_url": self.senderJson['avatar_url'],
       "channel": self.channel,
       "props": {"card": f"```json\n{self.eventJsonStr}\n```"},
     }
 
+    # self.attachment = {
+    #   "author_name": self.senderJson['login'],
+    #   "author_icon": self.senderJson['avatar_url'],
+    #   "author_link": self.senderJson['html_url'],
+    #   "footer": self.actionRepo,
+    #   "footer_icon": self.actionRepoIcon,
+    # }
     self.attachment = {
-      "author_name": self.senderJson['login'],
-      "author_icon": self.senderJson['avatar_url'],
-      "author_link": self.senderJson['html_url'],
-      "footer": self.actionRepo,
-      "footer_icon": self.actionRepoIcon,
     }
 
     if eventName == "push":
@@ -108,19 +112,41 @@ class MattermostWebhookBody:
   def addPullRequestDetails(self):
     self.body["text"] = self.createTitle()
     prJson = self.eventJson["pull_request"]
+    headJson = prJson["head"]
+    baseJson = prJson["base"]
     self.attachment["color"] = self.prColor
-    self.attachment["title"] = prJson["title"]
-    self.attachment["title_link"] = prJson["html_url"]
+    bodyTxt = f"Pull request [PR#{prJson['number']}: {prJson['title']}]({prJson['html_url']})\n"
+    bodyTxt += f"{headJson['label']} -> {baseJson['label']}\n"
 
-    bodyTxt = prJson['body']
-    if bodyTxt is not None:
-      bodyTxt += "\n#new-pull-request"
-    else:
-      bodyTxt = "#new-pull-request"
+    try:
+      reviewers = prJson["requested_reviewers"]
+      bodyTxt += "Reviewer(s):"
+      for r in reviewers:
+        bodyTxt += f" [{r['login']}]({r['html_url']}),"
+    except Exception:
+      pass
 
+    try:
+      reviewers = prJson["requested_teams"]
+      for r in reviewers:
+        bodyTxt += f" [{r['name']}]({r['html_url']}),"
+    except Exception:
+      pass
+
+    bodyTxt = bodyTxt.rstrip(',')
+    bodyTxt += "\n"
+
+    try:
+      bodyContent = prJson['body']
+      if bodyContent is not None:
+        bodyTxt += f"{bodyContent}"
+    except Exception:
+      pass
+
+    bodyTxt += "\n#new-pull-request"
+
+    self.attachment["color"] = self.prColor
     self.attachment["text"] = bodyTxt
-
-    self.attachment["color"] = self.prColor
     self.attachment["thumb_url"] = self.prThumbnail
 
   def addPullRequestReviewCommentDetails(self):
