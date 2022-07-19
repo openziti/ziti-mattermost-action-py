@@ -159,7 +159,7 @@ class MattermostWebhookBody:
       bodyTxt += f"{commentJson['body']}"
     except Exception:
       pass
-    
+
     self.attachment["color"] = self.prColor
     self.attachment["text"] = bodyTxt
 
