@@ -115,8 +115,8 @@ class MattermostWebhookBody:
     headJson = prJson["head"]
     baseJson = prJson["base"]
     self.attachment["color"] = self.prColor
-    bodyTxt = f"Pull request [PR#{prJson['number']}: {prJson['title']}]({prJson['html_url']}):\n"
-    bodyTxt += f"{headJson['label']} -> {baseJson['label']}"
+    bodyTxt = f"Pull request [PR#{prJson['number']}: {prJson['title']}]({prJson['html_url']})\n"
+    bodyTxt += f"{headJson['label']} -> {baseJson['label']}\n"
 
     try:
       reviewers = prJson["requested_reviewers"]
@@ -137,7 +137,9 @@ class MattermostWebhookBody:
     bodyTxt += "\n"
 
     try:
-      bodyTxt += f"{prJson['body']}"
+      bodyContent = prJson['body']
+      if bodyContent is not None:
+        bodyTxt += f"{bodyContent}"
     except Exception:
       pass
 
