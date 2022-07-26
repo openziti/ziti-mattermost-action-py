@@ -11,7 +11,7 @@ inputs:
     description: 'URL for posting the payload'
     required: true
   eventJson:
-    descrioption: 'GitHub event JSON (github.event)'
+    description: 'GitHub event JSON (github.event)'
     required: true
   senderUsername:
     description: 'Mattermost username'
