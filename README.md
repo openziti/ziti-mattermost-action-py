@@ -5,7 +5,7 @@ This GitHub workflow action uses [Ziti Python SDK](https://github.com/openziti/z
 
 ## Usage
 
-See [action.yml](action.yml)
+See [action.yml](action.yml) for descriptions of all available inputs.
 
 ```yml
 name: ziti-mattermost-action-py
@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Ziti Mattermost Action - Py
     steps:
-    - uses: openziti/ziti-mattermost-action-py@main
+    - uses: openziti/ziti-mattermost-action-py@v1
       with:
         # Identity JSON containing key to access a Ziti network
         zitiId: ${{ secrets.ZITI_MATTERMOST_IDENTITY }}
@@ -41,8 +41,15 @@ jobs:
         destChannel: "github-notifications"
 ```
 
-### Ziti Identity
+### Inputs
+
+#### `zitiId`
 
 The `zitiId` input is the JSON formatted string of an identity enrolled  in an OpenZiti Network.
 
 The identity can be created by enrolling via the `ziti edge enroll path/to/jwt [flags]` command.  The `ziti` CLI executable can be obtained [here](https://github.com/openziti/ziti/releases/latest).
+
+#### `webhookUrl`
+
+This input value is a Mattermost internal webhook that allows you to post to any channel and set the sender's name.
+
