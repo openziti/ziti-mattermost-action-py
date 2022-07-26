@@ -1,8 +1,7 @@
 # ziti-mattermost-action-py
 GitHub Action that posts to a Mattermost webhook endpoint over OpenZiti
 
-This GitHub workflow action uses [Ziti Python SDK](https://github.com/openziti/ziti-sdk-py) to post an event's `payload` information to a [Mattermost](https://mattermost.com/) instance over a `Ziti` connection.  
-
+This GitHub workflow action uses [Ziti Python SDK](https://github.com/openziti/ziti-sdk-py) to post an event's payload information to a [Mattermost](https://mattermost.com/) instance over a `Ziti` connection. This allows the Mattermost server to remain private, i.e. not directly exposed to the internet.
 
 ## Usage
 
@@ -44,6 +43,6 @@ jobs:
 
 ### Ziti Identity
 
-The `zitiIdd` input is the JSON formatted string of an identity enrolled  in a `Ziti` network.
+The `zitiId` input is the JSON formatted string of an identity enrolled  in an OpenZiti Network.
 
-The identity can be created by enrolling via the `ziti edge enroll path/to/jwt [flags]` command.  The `ziti` executable can be obtained [here](https://github.com/openziti/ziti/releases/latest).
+The identity can be created by enrolling via the `ziti edge enroll path/to/jwt [flags]` command.  The `ziti` CLI executable can be obtained [here](https://github.com/openziti/ziti/releases/latest).
