@@ -51,5 +51,4 @@ The identity can be created by enrolling via the `ziti edge enroll path/to/jwt [
 
 #### `webhookUrl`
 
-This input value is a Mattermost internal webhook that allows you to post to any channel and set the sender's name.
-
+This input value is a Mattermost "Incoming Webhook" URL available over an OpenZiti Network to the identity specified by `zitiId`. This URL should be configured in Mattermost to allow posting to any valid channel with any sender username. The default username will be the `sender.login` from the GitHub Action event.
