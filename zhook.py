@@ -276,7 +276,7 @@ class MattermostWebhookBody:
     self.attachment["text"] = bodyText
 
   def addWatchDetails(self):
-    self.body["text"] = self.createTitle()
+    self.body["text"] = f"{self.createTitle()} #stargazer"
     login = self.senderJson["login"]
     loginUrl = self.senderJson["html_url"]
     starCount = self.repoJson["stargazers_count"]
