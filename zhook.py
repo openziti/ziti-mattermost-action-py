@@ -19,7 +19,7 @@ class MattermostWebhookBody:
   issueColor = "#FFA500"
   releaseColor = "#DB7093"
   todoColor = "#FFFFFF"
-  watchColor = "#FFFF00"
+  watchColor = "#FFD700"
 
   def __init__(self, username, icon, channel, eventName, eventJsonStr, actionRepo):
     self.username = username
@@ -281,7 +281,7 @@ class MattermostWebhookBody:
     loginUrl = self.senderJson["html_url"]
     starCount = self.repoJson["stargazers_count"]
 
-    bodyText = f"[{login}]({loginUrl} is stargazer number {starCount}"
+    bodyText = f"[{login}]({loginUrl}) is stargazer number {starCount}"
     self.attachment["thumb_url"] = self.watchThumbnail
     self.attachment["color"] = self.watchColor
     self.attachment["text"] = bodyText
