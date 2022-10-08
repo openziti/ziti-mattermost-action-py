@@ -12,12 +12,14 @@ class MattermostWebhookBody:
   issueThumbnail = "https://github.com/openziti/branding/blob/main/images/ziggy/closeups/Ziggy-has-an-Idea-Closeup.png?raw=true"
   # releaseThumbnail = "https://github.com/openziti/branding/blob/main/images/ziggy/png/Ziggy-Cash-Money-Closeup.png?raw=true"
   releaseThumbnail = "https://github.com/openziti/branding/blob/main/images/ziggy/closeups/Ziggy-Parties-Closeup.png?raw=true"
+  watchThumbnail = "https://github.com/openziti/branding/blob/main/images/ziggy/closeups/Ziggy-is-Star-Struck.png?raw=true"
 
   prColor = "#32CD32"
   pushColor = "#708090"
   issueColor = "#FFA500"
   releaseColor = "#DB7093"
   todoColor = "#FFFFFF"
+  watchColor = "#FFFF00"
 
   def __init__(self, username, icon, channel, eventName, eventJsonStr, actionRepo):
     self.username = username
@@ -69,6 +71,8 @@ class MattermostWebhookBody:
       self.addForkDetails()
     elif eventName == "release":
       self.addReleaseDetails()
+    elif eventName == "watch":
+      self.addWatchDetails()
     else:
       self.addDefaultDetails()
 
@@ -269,6 +273,17 @@ class MattermostWebhookBody:
     if releaseBody is not None:
       bodyText += f"\n{releaseBody}"
 
+    self.attachment["text"] = bodyText
+
+  def addWatchDetails(self):
+    self.body["text"] = self.createTitle()
+    login = self.senderJson["login"]
+    loginUrl = self.senderJson["html_url"]
+    starCount = self.repoJson["stargazers_count"]
+    
+    bodyText = f"[{login}]({loginUrl} is stargazer number [starCount]"
+    self.attachment["thumb_url"] = self.watchThumbnail
+    self.attachment["color"] = self.watchColor
     self.attachment["text"] = bodyText
 
   def addDefaultDetails(self):
