@@ -280,8 +280,8 @@ class MattermostWebhookBody:
     login = self.senderJson["login"]
     loginUrl = self.senderJson["html_url"]
     starCount = self.repoJson["stargazers_count"]
-    
-    bodyText = f"[{login}]({loginUrl} is stargazer number [starCount]"
+
+    bodyText = f"[{login}]({loginUrl} is stargazer number {starCount}"
     self.attachment["thumb_url"] = self.watchThumbnail
     self.attachment["color"] = self.watchColor
     self.attachment["text"] = bodyText
