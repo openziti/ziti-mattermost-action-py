@@ -279,9 +279,61 @@ class MattermostWebhookBody:
     self.body["text"] = f"{self.createTitle()} #stargazer"
     login = self.senderJson["login"]
     loginUrl = self.senderJson["html_url"]
+    userUrl = self.senderJson["url"]
     starCount = self.repoJson["stargazers_count"]
 
-    bodyText = f"[{login}]({loginUrl}) is stargazer number {starCount}"
+    bodyText = f"[{login}]({loginUrl}) is stargazer number {starCount}\n"
+
+    try:
+      userUrl = "https://api.github.com/users/vs4vijay"
+
+      r = requests.get(userUrl)
+      print(f"Get User Info Response Status: {r.status_code}")
+      # print(r.headers)
+      # print(r.content)
+
+      userDetailsJson = json.loads(r.content)
+
+      name = userDetailsJson['name']
+      company = userDetailsJson['company']
+      location = userDetailsJson['location']
+      email = userDetailsJson['email']
+      twitter = userDetailsJson['twitter_username']
+      blog = userDetailsJson['blog']
+      bio = userDetailsJson['bio']
+
+      if name is not None:
+        bodyText += f"\nName: {name}  "
+
+      if company is not None:
+        bodyText += f"\nCompany: {company}  "
+
+      if location is not None:
+        bodyText += f"\nLocation: {location}  "
+
+      if email is not None:
+        bodyText += f"\nEmail: {email}  "
+
+      if twitter is not None:
+        bodyText += f"\nTwitter: {twitter}  "
+
+      if blog is not None:
+        bodyText += f"\nBlog: {blog}  "
+
+      if bio is not None:
+        bodyText += f"\nBio: {bio}  "
+
+    except Exception:
+      print(f"Exception retrieving user info: {e}")
+
+    ##bodyText += f"\n<details><summary>Github Stats</summary>"
+    #bodyText += f"![Github Stats](https://github-readme-stats.vercel.app/api?username={login})"
+    ##bodyText += f"</details>"
+
+    ##bodyText += f"\n<details><summary>Languages</summary>"
+    #bodyText += f"![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username={login}&layout=compact)"
+    ##bodyText += f"</details>"
+
     self.attachment["thumb_url"] = self.watchThumbnail
     self.attachment["color"] = self.watchColor
     self.attachment["text"] = bodyText
