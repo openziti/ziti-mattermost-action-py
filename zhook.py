@@ -300,25 +300,25 @@ class MattermostWebhookBody:
       blog = userDetailsJson['blog']
       bio = userDetailsJson['bio']
 
-      if name is not None:
+      if name is not None and name:
         bodyText += f"\n\n### {name}"
 
-      if company is not None:
+      if company is not None and company:
         bodyText += f"\nCompany: {company}  "
 
-      if location is not None:
+      if location is not None and location:
         bodyText += f"\nLocation: {location}  "
 
-      if email is not None:
+      if email is not None and email:
         bodyText += f"\nEmail: {email}  "
 
-      if twitter is not None:
+      if twitter is not None and twitter:
         bodyText += f"\nTwitter: {twitter}  "
 
-      if blog is not None:
+      if blog is not None and blog:
         bodyText += f"\nBlog: {blog}  "
 
-      if bio is not None:
+      if bio is not None and bio:
         bodyText += f"\nBio: {bio}  "
 
     except Exception as e:
