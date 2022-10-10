@@ -324,13 +324,14 @@ class MattermostWebhookBody:
     except Exception as e:
       print(f"Exception retrieving user info: {e}")
 
-    bodyText += "\n\n<details><summary>GitHub Stats</summary>"
+    # HTML not supported in Mattermost markdown...
+    # bodyText += "\n\n<details><summary>GitHub Stats</summary>"
     bodyText += f"\n\n![Github Stats](https://github-readme-stats.vercel.app/api?username={login})"
-    bodyText += "\n</details>"
+    # bodyText += "\n</details>"
 
-    bodyText += "\n\n<details><summary>Top Langs</summary>"
+    # bodyText += "\n\n<details><summary>Top Langs</summary>"
     bodyText += f"\n\n![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username={login}&layout=compact)"
-    bodyText += "\n</details>"
+    # bodyText += "\n</details>"
 
     self.attachment["thumb_url"] = self.watchThumbnail
     self.attachment["color"] = self.watchColor
