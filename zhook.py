@@ -303,7 +303,7 @@ class MattermostWebhookBody:
       bio = userDetailsJson['bio']
 
       if name is not None:
-        bodyText += f"\nName: {name}  "
+        bodyText += f"\n### {name}"
 
       if company is not None:
         bodyText += f"\nCompany: {company}  "
