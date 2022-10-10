@@ -329,8 +329,9 @@ class MattermostWebhookBody:
     bodyText += f"\n\n![Github Stats](https://github-readme-stats.vercel.app/api?username={login})"
     # bodyText += "\n</details>"
 
+    # These stats only cover the repos in the user's home (not all languages used in commits in any repo...)
     # bodyText += "\n\n<details><summary>Top Langs</summary>"
-    bodyText += f"\n\n![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username={login}&layout=compact)"
+    # bodyText += f"\n\n![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username={login}&layout=compact)"
     # bodyText += "\n</details>"
 
     self.attachment["thumb_url"] = self.watchThumbnail
