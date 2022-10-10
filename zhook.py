@@ -285,8 +285,6 @@ class MattermostWebhookBody:
     bodyText = f"[{login}]({loginUrl}) is stargazer number {starCount}\n"
 
     try:
-      userUrl = "https://api.github.com/users/vs4vijay"
-
       r = requests.get(userUrl)
       print(f"Get User Info Response Status: {r.status_code}")
       # print(r.headers)
