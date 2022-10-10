@@ -301,7 +301,7 @@ class MattermostWebhookBody:
       bio = userDetailsJson['bio']
 
       if name is not None and name:
-        bodyText += f"\n\n### {name}"
+        bodyText += f"\n\nName: {name}"
 
       if company is not None and company:
         bodyText += f"\nCompany: {company}  "
@@ -324,15 +324,18 @@ class MattermostWebhookBody:
     except Exception as e:
       print(f"Exception retrieving user info: {e}")
 
-    # HTML not supported in Mattermost markdown...
-    # bodyText += "\n\n<details><summary>GitHub Stats</summary>"
-    bodyText += f"\n\n![Github Stats](https://github-readme-stats.vercel.app/api?username={login})"
-    # bodyText += "\n</details>"
+    try:
+      # HTML not supported in Mattermost markdown...
+      # bodyText += "\n\n<details><summary>GitHub Stats</summary>"
+      bodyText += f"\n\n![Github Stats](https://github-readme-stats.vercel.app/api?username={login})"
+      # bodyText += "\n</details>"
 
-    # These stats only cover the repos in the user's home (not all languages used in commits in any repo...)
-    # bodyText += "\n\n<details><summary>Top Langs</summary>"
-    # bodyText += f"\n\n![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username={login}&layout=compact)"
-    # bodyText += "\n</details>"
+      # These stats only cover the repos in the user's home (not all languages used in commits in any repo...)
+      # bodyText += "\n\n<details><summary>Top Langs</summary>"
+      # bodyText += f"\n\n![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username={login}&layout=compact)"
+      # bodyText += "\n</details>"
+    except Exception as e:
+      print(f"Exception retrieving stats image: {e}")
 
     self.attachment["thumb_url"] = self.watchThumbnail
     self.attachment["color"] = self.watchColor
