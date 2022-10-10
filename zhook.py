@@ -282,7 +282,7 @@ class MattermostWebhookBody:
     userUrl = self.senderJson["url"]
     starCount = self.repoJson["stargazers_count"]
 
-    bodyText = f"[{login}]({loginUrl}) is stargazer number {starCount}\n"
+    bodyText = f"[{login}]({loginUrl}) is stargazer number {starCount}\n\n"
 
     try:
       r = requests.get(userUrl)
