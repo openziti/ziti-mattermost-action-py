@@ -323,16 +323,16 @@ class MattermostWebhookBody:
       if bio is not None:
         bodyText += f"\nBio: {bio}  "
 
-    except Exception:
+    except Exception as e:
       print(f"Exception retrieving user info: {e}")
 
-    ##bodyText += f"\n<details><summary>Github Stats</summary>"
-    #bodyText += f"![Github Stats](https://github-readme-stats.vercel.app/api?username={login})"
-    ##bodyText += f"</details>"
+    # # bodyText += f"\n<details><summary>Github Stats</summary>"
+    # bodyText += f"![Github Stats](https://github-readme-stats.vercel.app/api?username={login})"
+    # # bodyText += f"</details>"
 
-    ##bodyText += f"\n<details><summary>Languages</summary>"
-    #bodyText += f"![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username={login}&layout=compact)"
-    ##bodyText += f"</details>"
+    # # bodyText += f"\n<details><summary>Languages</summary>"
+    # bodyText += f"![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username={login}&layout=compact)"
+    # # bodyText += f"</details>"
 
     self.attachment["thumb_url"] = self.watchThumbnail
     self.attachment["color"] = self.watchColor
