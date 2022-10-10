@@ -279,9 +279,64 @@ class MattermostWebhookBody:
     self.body["text"] = f"{self.createTitle()} #stargazer"
     login = self.senderJson["login"]
     loginUrl = self.senderJson["html_url"]
+    userUrl = self.senderJson["url"]
     starCount = self.repoJson["stargazers_count"]
 
-    bodyText = f"[{login}]({loginUrl}) is stargazer number {starCount}"
+    bodyText = f"[{login}]({loginUrl}) is stargazer number {starCount}\n\n"
+
+    try:
+      r = requests.get(userUrl)
+      print(f"Get User Info Response Status: {r.status_code}")
+      # print(r.headers)
+      # print(r.content)
+
+      userDetailsJson = json.loads(r.content)
+
+      name = userDetailsJson['name']
+      company = userDetailsJson['company']
+      location = userDetailsJson['location']
+      email = userDetailsJson['email']
+      twitter = userDetailsJson['twitter_username']
+      blog = userDetailsJson['blog']
+      bio = userDetailsJson['bio']
+
+      if name is not None and name:
+        bodyText += f"\nName: {name}  "
+
+      if company is not None and company:
+        bodyText += f"\nCompany: {company}  "
+
+      if location is not None and location:
+        bodyText += f"\nLocation: {location}  "
+
+      if email is not None and email:
+        bodyText += f"\nEmail: {email}  "
+
+      if twitter is not None and twitter:
+        bodyText += f"\nTwitter: {twitter}  "
+
+      if blog is not None and blog:
+        bodyText += f"\nBlog: {blog}  "
+
+      if bio is not None and bio:
+        bodyText += f"\nBio: {bio}  "
+
+    except Exception as e:
+      print(f"Exception retrieving user info: {e}")
+
+    try:
+      # HTML not supported in Mattermost markdown...
+      # bodyText += "\n\n<details><summary>GitHub Stats</summary>"
+      bodyText += f"\n\n![Github Stats](https://github-readme-stats.vercel.app/api?username={login}&hide=stars)"
+      # bodyText += "\n</details>"
+
+      # These stats only cover the repos in the user's home (not all languages used in commits in any repo...)
+      # bodyText += "\n\n<details><summary>Top Langs</summary>"
+      # bodyText += f"\n\n![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username={login}&layout=compact)"
+      # bodyText += "\n</details>"
+    except Exception as e:
+      print(f"Exception retrieving stats image: {e}")
+
     self.attachment["thumb_url"] = self.watchThumbnail
     self.attachment["color"] = self.watchColor
     self.attachment["text"] = bodyText
