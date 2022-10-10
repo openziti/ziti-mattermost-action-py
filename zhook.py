@@ -301,7 +301,7 @@ class MattermostWebhookBody:
       bio = userDetailsJson['bio']
 
       if name is not None:
-        bodyText += f"\n### {name}"
+        bodyText += f"\n\n### {name}"
 
       if company is not None:
         bodyText += f"\nCompany: {company}  "
@@ -324,13 +324,13 @@ class MattermostWebhookBody:
     except Exception as e:
       print(f"Exception retrieving user info: {e}")
 
-    # # bodyText += f"\n<details><summary>Github Stats</summary>"
-    # bodyText += f"![Github Stats](https://github-readme-stats.vercel.app/api?username={login})"
-    # # bodyText += f"</details>"
+    bodyText += f"\n\n<details><summary>GitHub Stats</summary>"
+    bodyText += f"\n\n![Github Stats](https://github-readme-stats.vercel.app/api?username={login})"
+    bodyText += f"\n</details>"
 
-    # # bodyText += f"\n<details><summary>Languages</summary>"
-    # bodyText += f"![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username={login}&layout=compact)"
-    # # bodyText += f"</details>"
+    bodyText += f"\n\n<details><summary>Top Langs</summary>"
+    bodyText += f"\n\n![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username={login}&layout=compact)"
+    bodyText += f"\n</details>"
 
     self.attachment["thumb_url"] = self.watchThumbnail
     self.attachment["color"] = self.watchColor
