@@ -327,7 +327,7 @@ class MattermostWebhookBody:
     try:
       # HTML not supported in Mattermost markdown...
       # bodyText += "\n\n<details><summary>GitHub Stats</summary>"
-      bodyText += f"\n\n![Github Stats](https://github-readme-stats.vercel.app/api?username={login}&hide=stars)"
+      bodyText += f"\n\n![Github Stats](https://github-readme-stats.vercel.app/api?username={login}&hide=stars&hide_rank=true)"
       # bodyText += "\n</details>"
 
       # These stats only cover the repos in the user's home (not all languages used in commits in any repo...)
