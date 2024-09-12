@@ -1,7 +1,6 @@
 import requests
 import openziti
 import json
-import sys
 import os
 
 
