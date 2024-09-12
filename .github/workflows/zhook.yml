@@ -37,7 +37,6 @@ jobs:
           pip install --upgrade requests openziti
           python ./zhook.py
           
-
       - uses: ./  # use self to bring the pain forward
         name: run action
         if: |
