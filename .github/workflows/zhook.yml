@@ -20,8 +20,26 @@ jobs:
     runs-on: ubuntu-latest
     name: POST Webhook
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v4
+      - name: run hook directly
+        if: |
+          github.repository_owner == 'openziti'
+          && ((github.event_name != 'pull_request_review')
+          || (github.event_name == 'pull_request_review' && github.event.review.state == 'approved'))
+        env:
+          INPUT_ZITIID: ${{ secrets.ZITI_MATTERMOST_IDENTITY }}
+          INPUT_WEBHOOKURL: ${{ secrets.ZHOOK_URL }}
+          INPUT_EVENTJSON: ${{ toJson(github.event) }}
+          INPUT_SENDERUSERNAME: GitHubZ
+          INPUT_DESTCHANNEL: dev-notifications
+          INPUT_SENDERICONURL: https://github.com/fluidicon.png
+        run: |
+          pip install --upgrade requests openziti
+          python ./zhook.py
+          
+
       - uses: ./  # use self to bring the pain forward
+        name: run action
         if: |
           github.repository_owner == 'openziti'
           && ((github.event_name != 'pull_request_review')

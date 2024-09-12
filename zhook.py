@@ -86,7 +86,7 @@ class MattermostWebhookBody:
     # starCount = self.repoJson["stargazers_count"]
     # starUrl = f"{repoUrl}/stargazers"
 
-    title = f"{self.eventName.capitalize().replace('_',' ')}"
+    title = f"{self.eventName.capitalize().replace('_', ' ')}"
 
     try:
       action = self.eventJson["action"]
@@ -344,7 +344,7 @@ class MattermostWebhookBody:
   def addDefaultDetails(self):
     self.attachment["color"] = self.todoColor
     self.attachment["text"] = self.createTitle()
-    self.attachment["fallback"] = f"{eventName.capitalize().replace('_',' ')} by {self.senderJson['login']} in {self.repoJson['full_name']}"
+    self.attachment["fallback"] = f"{eventName.capitalize().replace('_', ' ')} by {self.senderJson['login']} in {self.repoJson['full_name']}"
 
   def dumpJson(self):
     return json.dumps(self.body)
@@ -362,9 +362,9 @@ if __name__ == '__main__':
 
   # Setup Ziti identity
   idFilename = "id.json"
-  os.environ["ZITI_IDENTITIES"] = idFilename
   with open(idFilename, 'w') as f:
     f.write(zitiId)
+    openziti.load(idFilename)
 
   # Create webhook body
   try:
