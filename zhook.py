@@ -379,6 +379,7 @@ if __name__ == '__main__':
 
   with openziti.monkeypatch():
     try:
+      print(f"Posting webhook to {url}")
       r = requests.post(url, headers=headers, data=data)
       print(f"Response Status: {r.status_code}")
       print(r.headers)
