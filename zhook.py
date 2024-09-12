@@ -375,7 +375,6 @@ if __name__ == '__main__':
   # Post the webhook over Ziti
   headers = {'Content-Type': 'application/json'}
   data = mwb.dumpJson()
-  print(f"{data}")
 
   with openziti.monkeypatch():
     try:
