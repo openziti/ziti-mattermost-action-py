@@ -364,7 +364,7 @@ if __name__ == '__main__':
     zitiId = openziti.enroll(zitiJwt)
   else:
     zitiId = os.getenv("INPUT_ZITIID")
-  
+
   if zitiId is None:
     print("ERROR: no Ziti identity provided, set INPUT_ZITIID or INPUT_ZITIJWT")
     exit(1)
