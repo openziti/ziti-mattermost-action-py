@@ -1,5 +1,5 @@
 name: 'Ziti Mattermost Action - Python'
-description: 'POST to Mattermost wWebhook endpoint over a Ziti network'
+description: 'POST to Mattermost Webhook endpoint over a Ziti network'
 branding:
   icon: 'zap'  
   color: 'red'
