@@ -8,5 +8,6 @@ COPY --from=builder /app /app
 COPY ./zhook.py /app/zhook.py
 WORKDIR /app
 ENV PYTHONPATH=/app
-ENV ZITI_LOG=4
+ENV ZITI_LOG=6
+ENV TLSUV_DEBUG=6
 CMD ["/app/zhook.py"]

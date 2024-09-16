@@ -350,7 +350,6 @@ class MattermostWebhookBody:
 
 
 if __name__ == '__main__':
-  zitiId = os.getenv("INPUT_ZITIID")
   url = os.getenv("INPUT_WEBHOOKURL")
   eventJsonStr = os.getenv("INPUT_EVENTJSON")
   username = os.getenv("INPUT_SENDERUSERNAME")
@@ -360,6 +359,16 @@ if __name__ == '__main__':
   eventName = os.getenv("GITHUB_EVENT_NAME")
 
   # Setup Ziti identity
+  zitiJwt = os.getenv("INPUT_ZITIJWT")
+  if zitiJwt is not None:
+    zitiId = openziti.enroll(zitiJwt)
+  else:
+    zitiId = os.getenv("INPUT_ZITIID")
+  
+  if zitiId is None:
+    print("ERROR: no Ziti identity provided, set INPUT_ZITIID or INPUT_ZITIJWT")
+    exit(1)
+
   idFilename = "id.json"
   with open(idFilename, 'w') as f:
     f.write(zitiId)
