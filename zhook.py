@@ -1,7 +1,6 @@
 import requests
 import openziti
 import json
-import sys
 import os
 
 
@@ -351,7 +350,6 @@ class MattermostWebhookBody:
 
 
 if __name__ == '__main__':
-  zitiId = os.getenv("INPUT_ZITIID")
   url = os.getenv("INPUT_WEBHOOKURL")
   eventJsonStr = os.getenv("INPUT_EVENTJSON")
   username = os.getenv("INPUT_SENDERUSERNAME")
@@ -361,6 +359,16 @@ if __name__ == '__main__':
   eventName = os.getenv("GITHUB_EVENT_NAME")
 
   # Setup Ziti identity
+  zitiJwt = os.getenv("INPUT_ZITIJWT")
+  if zitiJwt is not None:
+    zitiId = openziti.enroll(zitiJwt)
+  else:
+    zitiId = os.getenv("INPUT_ZITIID")
+
+  if zitiId is None:
+    print("ERROR: no Ziti identity provided, set INPUT_ZITIID or INPUT_ZITIJWT")
+    exit(1)
+
   idFilename = "id.json"
   with open(idFilename, 'w') as f:
     f.write(zitiId)
@@ -371,19 +379,20 @@ if __name__ == '__main__':
     mwb = MattermostWebhookBody(username, icon, channel, eventName, eventJsonStr, actionRepo)
   except Exception as e:
     print(f"Exception creating webhook body: {e}")
-    sys.exit(-1)
+    raise e
 
   # Post the webhook over Ziti
   headers = {'Content-Type': 'application/json'}
   data = mwb.dumpJson()
-  print(f"{data}")
 
   with openziti.monkeypatch():
     try:
+      print(f"Posting webhook to {url} with headers {headers} and data {data}")
+      # breakpoint()
       r = requests.post(url, headers=headers, data=data)
       print(f"Response Status: {r.status_code}")
       print(r.headers)
       print(r.content)
     except Exception as e:
       print(f"Exception posting webhook: {e}")
-      sys.exit(-1)
+      raise e

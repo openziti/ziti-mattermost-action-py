@@ -1,12 +1,13 @@
 FROM python:3-slim AS builder
-ADD . /app
-WORKDIR /app
 
 RUN pip install --target=/app requests openziti
 
 # https://github.com/GoogleContainerTools/distroless
 FROM gcr.io/distroless/python3-debian12
 COPY --from=builder /app /app
+COPY ./zhook.py /app/zhook.py
 WORKDIR /app
-ENV PYTHONPATH /app
+ENV PYTHONPATH=/app
+ENV ZITI_LOG=6
+ENV TLSUV_DEBUG=6
 CMD ["/app/zhook.py"]
