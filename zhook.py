@@ -370,9 +370,9 @@ if __name__ == '__main__':
     exit(1)
 
   idFilename = "id.json"
+  os.environ["ZITI_IDENTITIES"] = idFilename
   with open(idFilename, 'w') as f:
     f.write(zitiId)
-    openziti.load(idFilename)
 
   # Create webhook body
   try:

@@ -34,7 +34,7 @@ jobs:
           INPUT_DESTCHANNEL: dev-notifications
           INPUT_SENDERICONURL: https://github.com/fluidicon.png
         run: |
-          pip install --upgrade requests openziti
+          pip install --upgrade requests openziti==0.8.1
           python ./zhook.py
           
       - uses: ./  # use self to bring the pain forward
