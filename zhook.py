@@ -74,7 +74,7 @@ class MattermostWebhookBody:
     elif eventName == "repository_dispatch":
       event_type = self.eventJson.get("action", None)
       if event_type == "ziti_release":
-        self.addFipsReleaseDetails()
+        self.addFipsPreReleaseDetails()
       elif event_type == "ziti_promote_stable":
         self.addFipsPromoteStableDetails()
       else:
@@ -283,7 +283,7 @@ class MattermostWebhookBody:
 
     self.attachment["text"] = bodyText
 
-  def addFipsReleaseDetails(self):
+  def addFipsPreReleaseDetails(self):
     # Pre-release announcement (ziti_release)
     payload = self.eventJson.get("client_payload", {})
     version = payload.get("version")
@@ -291,8 +291,8 @@ class MattermostWebhookBody:
         self.attachment["text"] = "[ziti-fips] Pre-release published, but version not found in event."
         return
     repo = self.repoJson["full_name"]
-    release_url = f"https://github.com/{repo}/releases/tag/{version}"
-    self.body["text"] = f"FIPS Pre-release published by [{repo}](https://github.com/{repo})"
+    release_url = f"https://github.com/{repo}/releases/tag/v{version}"
+    self.body["text"] = f"FIPS Pre-release published in [{repo}](https://github.com/{repo})"
     self.attachment["color"] = self.releaseColor
     self.attachment["thumb_url"] = self.fipsReleaseThumbnail
     self.attachment["text"] = f"FIPS Pre-release [{version}]({release_url}) is now available."
@@ -305,7 +305,7 @@ class MattermostWebhookBody:
         self.attachment["text"] = "[ziti-fips] Stable promotion, but version not found in event."
         return
     repo = self.repoJson["full_name"]
-    release_url = f"https://github.com/{repo}/releases/tag/{version}"
+    release_url = f"https://github.com/{repo}/releases/tag/v{version}"
     self.body["text"] = f"FIPS Release promoted to stable in [{repo}](https://github.com/{repo})"
     self.attachment["color"] = self.releaseColor
     self.attachment["thumb_url"] = self.fipsReleaseThumbnail
@@ -414,10 +414,55 @@ if __name__ == '__main__':
     print("ERROR: no Ziti identity provided, set INPUT_ZITIID or INPUT_ZITIJWT")
     exit(1)
 
+  def generate_json_schema(obj, max_depth=10, current_depth=0):
+    """Generate a schema representation of a JSON object by inferring types from values."""
+    if current_depth >= max_depth:
+      return "<max_depth_reached>"
+
+    if obj is None:
+      return "null"
+    elif isinstance(obj, bool):
+      return "boolean"
+    elif isinstance(obj, int):
+      return "integer"
+    elif isinstance(obj, float):
+      return "number"
+    elif isinstance(obj, str):
+      return "string"
+    elif isinstance(obj, list):
+      if len(obj) == 0:
+        return "array[]"
+      # Get schema of first element as representative
+      element_schema = generate_json_schema(obj[0], max_depth, current_depth + 1)
+      return f"array[{element_schema}]"
+    elif isinstance(obj, dict):
+      schema = {}
+      for key, value in obj.items():
+        schema[key] = generate_json_schema(value, max_depth, current_depth + 1)
+      return schema
+    else:
+      return f"unknown_type({type(obj).__name__})"
+
+  # Validate zitiId as JSON
+  try:
+    zitiIdJson = json.loads(zitiId)
+  except Exception as e:
+    print(f"ERROR: zitiId is not valid JSON: {e}")
+    print(f"zitiId content: {zitiId}")
+    exit(1)
+
   idFilename = "id.json"
   with open(idFilename, 'w') as f:
     f.write(zitiId)
+
+  # Load the identity file after it's been written and closed
+  try:
     openziti.load(idFilename)
+  except Exception as e:
+    print(f"ERROR: Failed to load Ziti identity: {e}")
+    schema = generate_json_schema(zitiIdJson)
+    print(f"DEBUG: zitiId schema for troubleshooting: {json.dumps(schema, indent=2)}")
+    raise e
 
   # Create webhook body
   try:

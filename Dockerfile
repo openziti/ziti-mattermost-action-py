@@ -1,6 +1,6 @@
 FROM python:3-slim AS builder
 
-RUN pip install --target=/app requests openziti
+RUN pip install --target=/app requests openziti==1.2.0
 
 # https://github.com/GoogleContainerTools/distroless
 FROM gcr.io/distroless/python3-debian12
