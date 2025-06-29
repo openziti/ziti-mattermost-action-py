@@ -1,4 +1,5 @@
 # ziti-mattermost-action-py
+
 GitHub Action that posts to a Mattermost webhook endpoint over OpenZiti
 
 This GitHub workflow action uses [Ziti Python SDK](https://github.com/openziti/ziti-sdk-py) to post an event's payload information to a [Mattermost](https://mattermost.com/) instance over a `Ziti` connection. This allows the Mattermost server to remain private, i.e. not directly exposed to the internet.

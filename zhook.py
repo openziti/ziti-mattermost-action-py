@@ -11,6 +11,7 @@ class MattermostWebhookBody:
   issueThumbnail = "https://github.com/openziti/branding/blob/main/images/ziggy/closeups/Ziggy-has-an-Idea-Closeup.png?raw=true"
   # releaseThumbnail = "https://github.com/openziti/branding/blob/main/images/ziggy/png/Ziggy-Cash-Money-Closeup.png?raw=true"
   releaseThumbnail = "https://github.com/openziti/branding/blob/main/images/ziggy/closeups/Ziggy-Parties-Closeup.png?raw=true"
+  fipsReleaseThumbnail = "https://github.com/openziti/branding/blob/main/images/ziggy/closeups/Ziggy-The-Cop-Closeup.png?raw=true"
   watchThumbnail = "https://github.com/openziti/branding/blob/main/images/ziggy/closeups/Ziggy-is-Star-Struck.png?raw=true"
 
   prColor = "#32CD32"
@@ -70,6 +71,14 @@ class MattermostWebhookBody:
       self.addForkDetails()
     elif eventName == "release":
       self.addReleaseDetails()
+    elif eventName == "repository_dispatch":
+      event_type = self.eventJson.get("action", None)
+      if event_type == "ziti_release":
+        self.addFipsReleaseDetails()
+      elif event_type == "ziti_promote_stable":
+        self.addFipsPromoteStableDetails()
+      else:
+        self.addRepositoryDispatchGenericDetails()  # fallback
     elif eventName == "watch":
       self.addWatchDetails()
     else:
@@ -273,6 +282,42 @@ class MattermostWebhookBody:
       bodyText += f"\n{releaseBody}"
 
     self.attachment["text"] = bodyText
+
+  def addFipsReleaseDetails(self):
+    # Pre-release announcement (ziti_release)
+    payload = self.eventJson.get("client_payload", {})
+    version = payload.get("version")
+    if not version:
+        self.attachment["text"] = "[ziti-fips] Pre-release published, but version not found in event."
+        return
+    repo = self.repoJson["full_name"]
+    release_url = f"https://github.com/{repo}/releases/tag/{version}"
+    self.body["text"] = f"FIPS Pre-release published by [{repo}](https://github.com/{repo})"
+    self.attachment["color"] = self.releaseColor
+    self.attachment["thumb_url"] = self.fipsReleaseThumbnail
+    self.attachment["text"] = f"FIPS Pre-release [{version}]({release_url}) is now available."
+
+  def addFipsPromoteStableDetails(self):
+    # Promotion to stable announcement (ziti_promote_stable)
+    payload = self.eventJson.get("client_payload", {})
+    version = payload.get("version")
+    if not version:
+        self.attachment["text"] = "[ziti-fips] Stable promotion, but version not found in event."
+        return
+    repo = self.repoJson["full_name"]
+    release_url = f"https://github.com/{repo}/releases/tag/{version}"
+    self.body["text"] = f"FIPS Release promoted to stable in [{repo}](https://github.com/{repo})"
+    self.attachment["color"] = self.releaseColor
+    self.attachment["thumb_url"] = self.fipsReleaseThumbnail
+    self.attachment["text"] = f"FIPS Release [{version}]({release_url}) has been promoted to stable."
+
+  def addRepositoryDispatchGenericDetails(self):
+    event_type = self.eventJson.get("action", None)
+    payload = self.eventJson.get("client_payload", {})
+    repo = self.repoJson["full_name"]
+    self.body["text"] = f"Repository dispatch event received by [{repo}](https://github.com/{repo})"
+    self.attachment["color"] = self.releaseColor
+    self.attachment["text"] = f"Repository dispatch event type: `{event_type}`\nPayload: ```json\n{json.dumps(payload, indent=2)}\n```"
 
   def addWatchDetails(self):
     self.body["text"] = f"{self.createTitle()} #stargazer"
