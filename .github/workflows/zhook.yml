@@ -20,32 +20,40 @@ jobs:
     runs-on: ubuntu-latest
     name: POST Webhook
     steps:
-      - uses: actions/checkout@v4
-      - name: run hook directly
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Python Script Directly
         if: |
           github.repository_owner == 'openziti'
           && ((github.event_name != 'pull_request_review')
           || (github.event_name == 'pull_request_review' && github.event.review.state == 'approved'))
         env:
           INPUT_ZITIID: ${{ secrets.ZITI_MATTERMOST_IDENTITY }}
-          INPUT_WEBHOOKURL: ${{ secrets.ZHOOK_URL }}
+          INPUT_WEBHOOKURL: ${{ secrets.ZHOOK_URL_DEV_NOTIFICATIONS }}
           INPUT_EVENTJSON: ${{ toJson(github.event) }}
           INPUT_SENDERUSERNAME: GitHubZ
           INPUT_DESTCHANNEL: dev-notifications
           INPUT_SENDERICONURL: https://github.com/fluidicon.png
+          ZITI_LOG: 6
+          TLSUV_DEBUG: 6
+        shell: bash
         run: |
-          pip install --upgrade requests openziti
+          set -o pipefail
+          set -o xtrace
+          pip install --user --upgrade requests openziti==1.2.0
+          echo "DEBUG: PYTHONPATH=${PYTHONPATH:-}"
           python ./zhook.py
-          
-      - uses: ./  # use self to bring the pain forward
-        name: run action
+
+      - uses: ./
+        name: Run as a GH Action from the Local Checkout
         if: |
           github.repository_owner == 'openziti'
           && ((github.event_name != 'pull_request_review')
           || (github.event_name == 'pull_request_review' && github.event.review.state == 'approved'))
         with:
           zitiId: ${{ secrets.ZITI_MATTERMOST_IDENTITY }}
-          webhookUrl: ${{ secrets.ZHOOK_URL }}
+          webhookUrl: ${{ secrets.ZHOOK_URL_DEV_NOTIFICATIONS }}
           eventJson: ${{ toJson(github.event) }}
-          senderUsername: "GitHubZ"
-          destChannel: "dev-notifications"
+          senderUsername: GitHubZ
+          destChannel: dev-notifications
