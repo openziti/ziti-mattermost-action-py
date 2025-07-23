@@ -41,7 +41,7 @@ jobs:
         run: |
           set -o pipefail
           set -o xtrace
-          pip install --user --upgrade requests openziti==1.2.0
+          pip install --user --upgrade requests openziti
           echo "DEBUG: PYTHONPATH=${PYTHONPATH:-}"
           python ./zhook.py
 
