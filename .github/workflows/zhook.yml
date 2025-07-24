@@ -20,10 +20,10 @@ jobs:
     runs-on: ubuntu-24.04
     name: POST Webhook
     steps:
-      - name: Debug
+      - name: Debug Environment
         uses: hmarr/debug-action@v3
 
-      - name: Install Valgrind
+      - name: Install Debug Tools
         shell: bash
         run: sudo apt-get install --yes valgrind gdb
 
