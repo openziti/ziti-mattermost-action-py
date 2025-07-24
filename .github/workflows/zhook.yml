@@ -33,7 +33,6 @@ jobs:
           INPUT_WEBHOOKURL: ${{ secrets.ZHOOK_URL_DEV_NOTIFICATIONS }}
           INPUT_EVENTJSON: ${{ toJson(github.event) }}
           INPUT_SENDERUSERNAME: GitHubZ
-          INPUT_DESTCHANNEL: dev-notifications
           INPUT_SENDERICONURL: https://github.com/fluidicon.png
           ZITI_LOG: 6
           TLSUV_DEBUG: 6
@@ -56,4 +55,3 @@ jobs:
           webhookUrl: ${{ secrets.ZHOOK_URL_DEV_NOTIFICATIONS }}
           eventJson: ${{ toJson(github.event) }}
           senderUsername: GitHubZ
-          destChannel: dev-notifications
