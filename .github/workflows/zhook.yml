@@ -58,18 +58,32 @@ jobs:
           && ((github.event_name != 'pull_request_review')
           || (github.event_name == 'pull_request_review' && github.event.review.state == 'approved'))
         shell: bash
+        env:
+          INPUT_ZITIID: ${{ secrets.ZITI_MATTERMOST_IDENTITY }}
+          INPUT_WEBHOOKURL: ${{ secrets.ZHOOK_URL_DEV_NOTIFICATIONS }}
+          INPUT_EVENTJSON: ${{ toJson(github.event) }}
+          INPUT_SENDERUSERNAME: GitHubZ
+          INPUT_SENDERICONURL: https://github.com/fluidicon.png
+          INPUT_ZITILOGLEVEL: 6
         run: |
           set -o pipefail
           set -o xtrace
+          
+          # Create environment file for Docker
+          cat > /tmp/docker.env << 'EOF'
+          INPUT_ZITIID=${INPUT_ZITIID}
+          INPUT_WEBHOOKURL=${INPUT_WEBHOOKURL}
+          INPUT_EVENTJSON=${INPUT_EVENTJSON}
+          INPUT_SENDERUSERNAME=${INPUT_SENDERUSERNAME}
+          INPUT_SENDERICONURL=${INPUT_SENDERICONURL}
+          INPUT_ZITILOGLEVEL=${INPUT_ZITILOGLEVEL}
+          EOF
+          
           docker build -t zhook-action .
           docker run --rm \
             -v "${{ github.workspace }}:${{ github.workspace }}" \
             -w "${{ github.workspace }}" \
-            -e "INPUT_ZITIID=${{ secrets.ZITI_MATTERMOST_IDENTITY }}" \
-            -e "INPUT_WEBHOOKURL=${{ secrets.ZHOOK_URL_DEV_NOTIFICATIONS }}" \
-            -e "INPUT_EVENTJSON=${{ toJson(github.event) }}" \
-            -e "INPUT_SENDERUSERNAME=GitHubZ" \
-            -e "INPUT_ZITILOGLEVEL=6" \
+            --env-file /tmp/docker.env \
             --entrypoint /bin/sh \
             zhook-action -xc "
               ulimit -c unlimited
