@@ -70,6 +70,7 @@ jobs:
         run: |
           set -o pipefail
           set -o xtrace
+          set +o errexit
           echo "DEBUG: PYTHONPATH=${PYTHONPATH:-}"
           echo "DEBUG: PATH=${PATH:-}"
           echo "DEBUG: LD_LIBRARY_PATH=${LD_LIBRARY_PATH:-}"
