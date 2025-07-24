@@ -399,6 +399,10 @@ if __name__ == '__main__':
   icon = os.getenv("INPUT_SENDERICONURL")
   actionRepo = os.getenv("GITHUB_ACTION_REPOSITORY")
   eventName = os.getenv("GITHUB_EVENT_NAME")
+  zitiLogLevel = os.getenv("INPUT_ZITILOGLEVEL")
+  if zitiLogLevel is not None:
+    os.environ["ZITI_LOG"] = zitiLogLevel
+    os.environ["TLSUV_DEBUG"] = zitiLogLevel
 
   # Setup Ziti identity
   zitiJwt = os.getenv("INPUT_ZITIJWT")
