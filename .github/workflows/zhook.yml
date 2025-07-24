@@ -20,6 +20,9 @@ jobs:
     runs-on: ubuntu-latest
     name: POST Webhook
     steps:
+      - name: Debug
+        uses: hmarr/debug-action@v3
+
       - name: Checkout
         uses: actions/checkout@v4
 
