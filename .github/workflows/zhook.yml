@@ -17,11 +17,15 @@ on:
 
 jobs:
   mattermost-ziti-webhook:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     name: POST Webhook
     steps:
       - name: Debug
         uses: hmarr/debug-action@v3
+
+      - name: Install Valgrind
+        shell: bash
+        run: sudo apt-get install --yes valgrind gdb
 
       - name: Checkout
         uses: actions/checkout@v4
@@ -43,9 +47,10 @@ jobs:
         run: |
           set -o pipefail
           set -o xtrace
-          pip install --user --upgrade requests openziti
-          echo "DEBUG: PYTHONPATH=${PYTHONPATH:-}"
-          python ./zhook.py
+          pip install --user --upgrade --requirement ./requirements.txt
+          sudo sysctl -w kernel.core_pattern='/tmp/core.%e.%p.%t'
+          ulimit -c unlimited
+          valgrind --verbose --log-file=/tmp/zook.py-valgrind-%p-%n.log --leak-check=full python ./zhook.py
 
       - uses: ./
         name: Run as a GH Action from the Local Checkout
@@ -58,3 +63,19 @@ jobs:
           webhookUrl: ${{ secrets.ZHOOK_URL_DEV_NOTIFICATIONS }}
           eventJson: ${{ toJson(github.event) }}
           senderUsername: GitHubZ
+
+      - name: Print Debug Info
+        if: always()
+        shell: bash
+        run: |
+          set -o pipefail
+          set -o xtrace
+          echo "DEBUG: PYTHONPATH=${PYTHONPATH:-}"
+          echo "DEBUG: PATH=${PATH:-}"
+          echo "DEBUG: LD_LIBRARY_PATH=${LD_LIBRARY_PATH:-}"
+          find $(python -c "import site; print(site.USER_SITE)") -path "*/openziti*" -name "*.so*" -type f -print0 | xargs -0r ldd
+          cat /tmp/zook.py-valgrind-*.log
+          if [ -s /tmp/core.python.* ]; then
+            echo "DEBUG: Core dump found"
+            gdb -q $(realpath $(which python)) -c /tmp/core.python.* --ex bt --ex exit
+          fi
