@@ -22,9 +22,13 @@ inputs:
     required: false
     default: https://github.com/fluidicon.png
   destChannel:
-    description: Mattermost channel (deprecated because incoming webhooks are now locked to a channel)
+    description: Mattermost channel (ignored because incoming webhooks are locked to a channel)
     required: false
     default: null
+  zitiLogLevel:
+    description: Ziti log level
+    required: false
+    default: 3
 runs:
   using: docker
   image: Dockerfile

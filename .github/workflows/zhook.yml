@@ -41,16 +41,40 @@ jobs:
           INPUT_EVENTJSON: ${{ toJson(github.event) }}
           INPUT_SENDERUSERNAME: GitHubZ
           INPUT_SENDERICONURL: https://github.com/fluidicon.png
-          ZITI_LOG: 6
-          TLSUV_DEBUG: 6
+          INPUT_ZITILOGLEVEL: 6
         shell: bash
         run: |
           set -o pipefail
           set -o xtrace
           pip install --user --upgrade --requirement ./requirements.txt
-          sudo sysctl -w kernel.core_pattern='/tmp/core.%e.%p.%t'
+          sudo mkdir -m0777 ${{ github.workspace }}/cores
+          sudo sysctl -w kernel.core_pattern='${{ github.workspace }}/cores/core.%e.%p.%t'
           ulimit -c unlimited
           valgrind --verbose --log-file=/tmp/zook.py-valgrind-%p-%n.log --leak-check=full python ./zhook.py
+
+      - name: Run as Docker Action with Core Dumps
+        if: |
+          github.repository_owner == 'openziti'
+          && ((github.event_name != 'pull_request_review')
+          || (github.event_name == 'pull_request_review' && github.event.review.state == 'approved'))
+        shell: bash
+        run: |
+          set -o pipefail
+          set -o xtrace
+          docker build -t zhook-action .
+          docker run --rm \
+            -v "${{ github.workspace }}:${{ github.workspace }}" \
+            -w "${{ github.workspace }}" \
+            -e INPUT_ZITIID="${{ secrets.ZITI_MATTERMOST_IDENTITY }}" \
+            -e INPUT_WEBHOOKURL="${{ secrets.ZHOOK_URL_DEV_NOTIFICATIONS }}" \
+            -e INPUT_EVENTJSON='${{ toJson(github.event) }}' \
+            -e INPUT_SENDERUSERNAME="GitHubZ" \
+            -e INPUT_ZITILOGLEVEL="6" \
+            --entrypoint /bin/sh \
+            zhook-action -xc "
+              ulimit -c unlimited
+              exec /app/zhook.py
+            "
 
       - uses: ./
         name: Run as a GH Action from the Local Checkout
@@ -63,6 +87,7 @@ jobs:
           webhookUrl: ${{ secrets.ZHOOK_URL_DEV_NOTIFICATIONS }}
           eventJson: ${{ toJson(github.event) }}
           senderUsername: GitHubZ
+          zitiLogLevel: 6
 
       - name: Print Debug Info
         if: always()
@@ -75,7 +100,10 @@ jobs:
           echo "DEBUG: LD_LIBRARY_PATH=${LD_LIBRARY_PATH:-}"
           find $(python -c "import site; print(site.USER_SITE)") -path "*/openziti*" -name "*.so*" -type f -print0 | xargs -0r ldd
           cat /tmp/zook.py-valgrind-*.log
-          if [ -s /tmp/core.python.* ]; then
-            echo "DEBUG: Core dump found"
-            gdb -q $(realpath $(which python)) -c /tmp/core.python.* --ex bt --ex exit
-          fi
+          for CORE in ${{ github.workspace }}/cores/core.*; do
+            if [ -s "$CORE" ]; then
+              echo "DEBUG: Core dump found: $CORE"
+              EXECUTABLE=$(basename "$CORE" | cut -d. -f2)
+              gdb -q $(realpath $(which "$EXECUTABLE")) -c "$CORE" --ex bt --ex exit
+            fi
+          done
