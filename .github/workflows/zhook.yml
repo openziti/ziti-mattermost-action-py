@@ -69,13 +69,13 @@ jobs:
           set -o pipefail
           set -o xtrace
           
-          cat > /tmp/docker.env << 'EOF'
-          INPUT_ZITIID=${INPUT_ZITIID}
-          INPUT_WEBHOOKURL=${INPUT_WEBHOOKURL}
-          INPUT_EVENTJSON=${INPUT_EVENTJSON}
-          INPUT_SENDERUSERNAME=${INPUT_SENDERUSERNAME}
-          INPUT_SENDERICONURL=${INPUT_SENDERICONURL}
-          INPUT_ZITILOGLEVEL=${INPUT_ZITILOGLEVEL}
+          cat > /tmp/docker.env << EOF
+          INPUT_ZITIID="${INPUT_ZITIID}"
+          INPUT_WEBHOOKURL="${INPUT_WEBHOOKURL}"
+          INPUT_EVENTJSON="${INPUT_EVENTJSON}"
+          INPUT_SENDERUSERNAME="${INPUT_SENDERUSERNAME}"
+          INPUT_SENDERICONURL="${INPUT_SENDERICONURL}"
+          INPUT_ZITILOGLEVEL="${INPUT_ZITILOGLEVEL}"
           EOF
           
           docker build -t zhook-action .
