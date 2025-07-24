@@ -69,7 +69,6 @@ jobs:
           set -o pipefail
           set -o xtrace
           
-          # Create environment file for Docker
           cat > /tmp/docker.env << 'EOF'
           INPUT_ZITIID=${INPUT_ZITIID}
           INPUT_WEBHOOKURL=${INPUT_WEBHOOKURL}
@@ -116,10 +115,17 @@ jobs:
           echo "DEBUG: LD_LIBRARY_PATH=${LD_LIBRARY_PATH:-}"
           find $(python -c "import site; print(site.USER_SITE)") -path "*/openziti*" -name "*.so*" -type f -print0 | xargs -0r ldd
           cat /tmp/zook.py-valgrind-*.log
-          for CORE in ${{ github.workspace }}/cores/core.*; do
-            if [ -s "$CORE" ]; then
-              echo "DEBUG: Core dump found: $CORE"
-              EXECUTABLE=$(basename "$CORE" | cut -d. -f2)
-              gdb -q $(realpath $(which "$EXECUTABLE")) -c "$CORE" --ex bt --ex exit
-            fi
-          done
+          shopt -s nullglob
+          typeset -a CORES=(${{ github.workspace }}/cores/core.*)
+          shopt -u nullglob
+          if [ ${#CORES[@]} -eq 0 ]; then
+            echo "DEBUG: No core dumps found"
+          else
+            for CORE in "${CORES[@]}"; do
+              if [ -s "$CORE" ]; then
+                echo "DEBUG: Core dump found: $CORE"
+                EXECUTABLE=$(basename "$CORE" | cut -d. -f2)
+                gdb -q $(realpath $(which "$EXECUTABLE")) -c "$CORE" --ex bt --ex exit
+              fi
+            done
+          fi
