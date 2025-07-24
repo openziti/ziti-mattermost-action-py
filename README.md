@@ -39,7 +39,6 @@ jobs:
 
         eventJson: ${{ toJson(github.event) }}
         senderUsername: "GitHubZ"
-        destChannel: "github-notifications"
 ```
 
 ### Inputs

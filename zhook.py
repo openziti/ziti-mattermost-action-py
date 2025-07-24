@@ -21,10 +21,9 @@ class MattermostWebhookBody:
   todoColor = "#FFFFFF"
   watchColor = "#FFD700"
 
-  def __init__(self, username, icon, channel, eventName, eventJsonStr, actionRepo):
+  def __init__(self, username, icon, eventName, eventJsonStr, actionRepo):
     self.username = username
     self.icon = icon
-    self.channel = channel
     self.eventName = eventName.lower()
     self.eventJsonStr = eventJsonStr
     self.actionRepo = actionRepo
@@ -37,7 +36,6 @@ class MattermostWebhookBody:
       # "icon_url": self.icon,
       "username": self.senderJson['login'],
       "icon_url": self.senderJson['avatar_url'],
-      "channel": self.channel,
       "props": {"card": f"```json\n{self.eventJsonStr}\n```"},
     }
 
@@ -399,7 +397,6 @@ if __name__ == '__main__':
   eventJsonStr = os.getenv("INPUT_EVENTJSON")
   username = os.getenv("INPUT_SENDERUSERNAME")
   icon = os.getenv("INPUT_SENDERICONURL")
-  channel = os.getenv("INPUT_DESTCHANNEL")
   actionRepo = os.getenv("GITHUB_ACTION_REPOSITORY")
   eventName = os.getenv("GITHUB_EVENT_NAME")
 
@@ -466,7 +463,7 @@ if __name__ == '__main__':
 
   # Create webhook body
   try:
-    mwb = MattermostWebhookBody(username, icon, channel, eventName, eventJsonStr, actionRepo)
+    mwb = MattermostWebhookBody(username, icon, eventName, eventJsonStr, actionRepo)
   except Exception as e:
     print(f"Exception creating webhook body: {e}")
     raise e

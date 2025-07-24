@@ -8,7 +8,7 @@ inputs:
     description: Identity JSON for an enrolled Ziti endpoint
     required: true
   webhookUrl:
-    description: URL for posting the payload
+    description: Mattermost-channel-specific URL for posting the event
     required: true
   eventJson:
     description: GitHub event JSON (github.event)
@@ -22,9 +22,9 @@ inputs:
     required: false
     default: https://github.com/fluidicon.png
   destChannel:
-    description: Mattermost channel
+    description: Mattermost channel (deprecated because incoming webhooks are now locked to a channel)
     required: false
-    default: dev-notifications
+    default: null
 runs:
   using: docker
   image: Dockerfile
