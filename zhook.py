@@ -4,6 +4,7 @@ import requests
 import openziti
 import json
 import os
+import base64
 
 
 class MattermostWebhookBody:
@@ -396,7 +397,17 @@ class MattermostWebhookBody:
 
 if __name__ == '__main__':
   url = os.getenv("INPUT_WEBHOOKURL")
-  eventJsonStr = os.getenv("INPUT_EVENTJSON")
+  
+  # Handle both base64-encoded and direct JSON input
+  eventJsonB64 = os.getenv("INPUT_EVENTJSON_B64")
+  if eventJsonB64:
+    try:
+      eventJsonStr = base64.b64decode(eventJsonB64).decode('utf-8')
+    except Exception as e:
+      print(f"Failed to decode base64 event JSON: {e}")
+      eventJsonStr = os.getenv("INPUT_EVENTJSON")
+  else:
+    eventJsonStr = os.getenv("INPUT_EVENTJSON")
   username = os.getenv("INPUT_SENDERUSERNAME")
   icon = os.getenv("INPUT_SENDERICONURL")
   actionRepo = os.getenv("GITHUB_ACTION_REPOSITORY")
