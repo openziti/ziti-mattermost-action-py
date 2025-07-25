@@ -47,10 +47,12 @@ jobs:
           set -o pipefail
           set -o xtrace
           pip install --user --upgrade --requirement ./requirements.txt
-          sudo mkdir -m0777 ${{ github.workspace }}/cores
-          sudo sysctl -w kernel.core_pattern='${{ github.workspace }}/cores/core.%e.%p.%t'
-          ulimit -c unlimited
-          valgrind --verbose --log-file=/tmp/zook.py-valgrind-%p-%n.log --leak-check=full python ./zhook.py
+          # in case valgrind catches a segfault, it will write a core file in ./vgcore.%p
+          valgrind \
+            --verbose \
+            --log-file=${GITHUB_WORKSPACE}/direct-valgrind-%p-%n.log \
+            --leak-check=yes \
+            python ./zhook.py
 
       - name: Run in Docker with Core Dumps
         if: |
@@ -76,19 +78,28 @@ jobs:
           INPUT_SENDERUSERNAME="${INPUT_SENDERUSERNAME}"
           INPUT_SENDERICONURL="${INPUT_SENDERICONURL}"
           INPUT_ZITILOGLEVEL="${INPUT_ZITILOGLEVEL}"
+          GITHUB_WORKSPACE="${GITHUB_WORKSPACE}"
           EOF
           
+          # configure the kernel to write core dumps to the workspace directory that is writable by the container
+          sudo sysctl -w kernel.core_pattern="${GITHUB_WORKSPACE}/core.%e.%p.%t"
+
+          # build the action's container image so we can source it for the debug image
           docker build -t zhook-action .
           docker build -t zhook-action-dbg -f debug.Dockerfile .
           docker run --rm \
-            -v "${{ github.workspace }}:${{ github.workspace }}" \
-            -w "${{ github.workspace }}" \
+            --volume "${GITHUB_WORKSPACE}:${GITHUB_WORKSPACE}" \
+            --workdir "${GITHUB_WORKSPACE}" \
             --env-file /tmp/docker.env \
-            --entrypoint /bin/bash \
-            zhook-action-dbg -xc "
-              ulimit -c unlimited
-              exec /app/zhook.py
-            "
+            --entrypoint=/bin/bash \
+            zhook-action-dbg -euxo pipefail -c '
+              ulimit -c unlimited;
+              exec valgrind \
+                --verbose \
+                --log-file=${GITHUB_WORKSPACE}/docker-valgrind-%p-%n.log \
+                --leak-check=yes \
+                python /app/zhook.py;
+            '
 
       - uses: ./
         name: Run as a GH Action from the Local Checkout
@@ -113,19 +124,36 @@ jobs:
           echo "DEBUG: PYTHONPATH=${PYTHONPATH:-}"
           echo "DEBUG: PATH=${PATH:-}"
           echo "DEBUG: LD_LIBRARY_PATH=${LD_LIBRARY_PATH:-}"
+          # list non-git files in the two uppermost levels of the workspace directory hierarchy
+          find . -maxdepth 2 -path './.git' -prune -o -print
           find $(python -c "import site; print(site.USER_SITE)") -path "*/openziti*" -name "*.so*" -type f -print0 | xargs -0r ldd
-          cat /tmp/zook.py-valgrind-*.log
+          
           shopt -s nullglob
-          typeset -a CORES=(${{ github.workspace }}/cores/core.*)
-          shopt -u nullglob
-          if [ ${#CORES[@]} -eq 0 ]; then
-            echo "DEBUG: No core dumps found"
+          # find valgrind logs from both execution steps
+          typeset -a VALGRIND_LOGS=(${GITHUB_WORKSPACE}/*-valgrind-*.log)
+          if (( ${#VALGRIND_LOGS[@]} )); then
+            for LOG in "${VALGRIND_LOGS[@]}"; do
+              if [ -s "$LOG" ]; then
+                echo "DEBUG: Valgrind log: $LOG"
+                cat "$LOG"
+                echo "--- End of $(basename "$LOG") ---"
+              fi
+            done
           else
+            echo "DEBUG: No Valgrind logs found"
+          fi
+          
+          # find core dumps produced by the kernel and valgrind
+          typeset -a CORES=(${GITHUB_WORKSPACE}/core.* ${GITHUB_WORKSPACE}/vgcore.*)
+          shopt -u nullglob
+          if (( ${#CORES[@]} )); then
             for CORE in "${CORES[@]}"; do
               if [ -s "$CORE" ]; then
-                echo "DEBUG: Core dump found: $CORE"
+                echo "DEBUG: Core dump: $CORE"
                 EXECUTABLE=$(basename "$CORE" | cut -d. -f2)
                 gdb -q $(realpath $(which "$EXECUTABLE")) -c "$CORE" --ex bt --ex exit
               fi
             done
+          else
+            echo "DEBUG: No core dumps found"
           fi
