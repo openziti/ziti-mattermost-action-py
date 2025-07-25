@@ -71,17 +71,20 @@ jobs:
           set -o pipefail
           set -o xtrace
           
+          # Base64 encode JSON to avoid whitespace issues in env file
+          ENCODED_JSON=$(echo "${INPUT_EVENTJSON}" | base64 -w 0)
+          
           cat > /tmp/docker.env << EOF
-          INPUT_ZITIID="${INPUT_ZITIID}"
-          INPUT_WEBHOOKURL="${INPUT_WEBHOOKURL}"
-          INPUT_EVENTJSON="${INPUT_EVENTJSON}"
-          INPUT_SENDERUSERNAME="${INPUT_SENDERUSERNAME}"
-          INPUT_SENDERICONURL="${INPUT_SENDERICONURL}"
-          INPUT_ZITILOGLEVEL="${INPUT_ZITILOGLEVEL}"
-          GITHUB_WORKSPACE="${GITHUB_WORKSPACE}"
+          INPUT_ZITIID=${INPUT_ZITIID}
+          INPUT_WEBHOOKURL=${INPUT_WEBHOOKURL}
+          INPUT_EVENTJSON_B64=${ENCODED_JSON}
+          INPUT_SENDERUSERNAME=${INPUT_SENDERUSERNAME}
+          INPUT_SENDERICONURL=${INPUT_SENDERICONURL}
+          INPUT_ZITILOGLEVEL=${INPUT_ZITILOGLEVEL}
+          GITHUB_WORKSPACE=${GITHUB_WORKSPACE}
           EOF
           
-          # configure the kernel to write core dumps to the workspace directory that is writable by the container
+          # configure the kernel to write core dumps to the workspace directory that is writable by the container in case there is a segfault valgrind cannot catch in a vgcore.%p
           sudo sysctl -w kernel.core_pattern="${GITHUB_WORKSPACE}/core.%e.%p.%t"
 
           # build the action's container image so we can source it for the debug image
