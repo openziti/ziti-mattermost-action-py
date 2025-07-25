@@ -82,6 +82,8 @@ jobs:
           INPUT_SENDERICONURL=${INPUT_SENDERICONURL}
           INPUT_ZITILOGLEVEL=${INPUT_ZITILOGLEVEL}
           GITHUB_WORKSPACE=${GITHUB_WORKSPACE}
+          GITHUB_EVENT_NAME=${GITHUB_EVENT_NAME}
+          GITHUB_ACTION_REPOSITORY=${GITHUB_ACTION_REPOSITORY}
           EOF
           
           # configure the kernel to write core dumps to the workspace directory that is writable by the container in case there is a segfault valgrind cannot catch in a vgcore.%p
