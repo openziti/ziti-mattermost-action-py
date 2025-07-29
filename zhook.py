@@ -397,7 +397,7 @@ class MattermostWebhookBody:
 
 if __name__ == '__main__':
   url = os.getenv("INPUT_WEBHOOKURL")
-  
+
   # Handle both base64-encoded and direct JSON input
   eventJsonB64 = os.getenv("INPUT_EVENTJSON_B64")
   if eventJsonB64:
