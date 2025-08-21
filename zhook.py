@@ -433,14 +433,8 @@ if __name__ == '__main__':
   with open(idFilename, 'w') as f:
     f.write(zitiIdContent)
 
-  # Load the identity file after it's been written and closed
-  try:
-    openziti.load(idFilename)
-  except Exception as e:
-    print(f"ERROR: Failed to load Ziti identity: {e}")
-    schema = generate_json_schema(zitiIdJson)
-    print(f"DEBUG: zitiId schema for troubleshooting: {json.dumps(schema, indent=2)}")
-    raise e
+  # Defer openziti.load() until inside the monkeypatch context to keep
+  # initialization/teardown paired and avoid double-free on shutdown.
 
   # Create webhook body
   try:
@@ -454,13 +448,36 @@ if __name__ == '__main__':
   data = mwb.dumpJson()
 
   with openziti.monkeypatch():
+    # Load the identity inside the context so that the same owner tears down
+    # resources, reducing the chance of double shutdown/free.
     try:
+      openziti.load(idFilename)
+    except Exception as e:
+      print(f"ERROR: Failed to load Ziti identity: {e}")
+      schema = generate_json_schema(zitiIdJson)
+      print(f"DEBUG: zitiId schema for troubleshooting: {json.dumps(schema, indent=2)}")
+      raise e
+
+    session = None
+    r = None
+    try:
+      session = requests.Session()
       print(f"Posting webhook to {url} with headers {headers} and data {data}")
-      # breakpoint()
-      r = requests.post(url, headers=headers, data=data)
+      r = session.post(url, headers=headers, data=data)
       print(f"Response Status: {r.status_code}")
       print(r.headers)
       print(r.content)
     except Exception as e:
       print(f"Exception posting webhook: {e}")
       raise e
+    finally:
+      try:
+        if r is not None:
+          r.close()
+      except Exception:
+        pass
+      try:
+        if session is not None:
+          session.close()
+      except Exception:
+        pass
