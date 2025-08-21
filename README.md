@@ -34,10 +34,10 @@ jobs:
 
         # URL to post the payload. Note that the `zitiId` must provide access to a service 
         # intercepting `my-mattermost-ziti-server`
-        webhookUrl: 'https://{my-mattermost-ziti-server}/hook/{my-mattermost-webhook-id}}'
+        webhookUrl: http://{my-mattermost-ziti-server}/hook/{my-mattermost-webhook-id}}
 
         eventJson: ${{ toJson(github.event) }}
-        senderUsername: "GitHubZ"
+        senderUsername: GitHubZ
 ```
 
 ### Inputs
