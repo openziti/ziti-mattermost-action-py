@@ -457,17 +457,26 @@ if __name__ == '__main__':
     else:
       return f"unknown_type({type(obj).__name__})"
 
-  # Validate zitiId as JSON
+  # Accept only inline JSON for zitiId; do not interpret as file path or base64
+  def _safe_hint(s):
+    if s is None:
+      return "<none>"
+    l = len(s)
+    head = s[:8].replace('\n', ' ')
+    return f"len={l}, startswith='{head}...'"
+
   try:
     zitiIdJson = json.loads(zitiId)
+    zitiIdContent = zitiId
   except Exception as e:
-    print(f"ERROR: zitiId is not valid JSON: {e}")
-    print(f"zitiId content: {zitiId}")
+    print("ERROR: zitiId must be inline JSON (not a file path or base64).")
+    print(f"DEBUG: INPUT_ZITIID hint: {_safe_hint(zitiId)}")
+    print(f"DEBUG: json error: {e}")
     exit(1)
 
   idFilename = "id.json"
   with open(idFilename, 'w') as f:
-    f.write(zitiId)
+    f.write(zitiIdContent)
 
   # Load the identity file after it's been written and closed
   try:
