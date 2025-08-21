@@ -1,0 +1,10 @@
+[flake8]
+ignore =
+    E111,
+    E114,
+    E121,
+    E501
+
+# You can add project-wide settings here later, e.g.:
+# max-line-length = 120
+# exclude = .git,__pycache__,.venv

@@ -416,9 +416,9 @@ if __name__ == '__main__':
   def _safe_hint(s):
     if s is None:
       return "<none>"
-    l = len(s)
+    hint_len = len(s)
     head = s[:8].replace('\n', ' ')
-    return f"len={l}, startswith='{head}...'"
+    return f"len={hint_len}, startswith='{head}...'"
 
   try:
     zitiIdJson = json.loads(zitiId)
