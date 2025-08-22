@@ -56,7 +56,8 @@ jobs:
 
       - name: Run in Docker with Core Dumps
         if: |
-          (github.repository_owner == 'openziti' || github.repository_owner == 'netfoundry')
+          always()
+          && (github.repository_owner == 'openziti' || github.repository_owner == 'netfoundry')
           && ((github.event_name != 'pull_request_review')
           || (github.event_name == 'pull_request_review' && github.event.review.state == 'approved'))
         shell: bash
@@ -109,7 +110,8 @@ jobs:
       - uses: ./
         name: Run as a GH Action from the Local Checkout
         if: |
-          (github.repository_owner == 'openziti' || github.repository_owner == 'netfoundry')
+          always()
+          && (github.repository_owner == 'openziti' || github.repository_owner == 'netfoundry')
           && ((github.event_name != 'pull_request_review')
           || (github.event_name == 'pull_request_review' && github.event.review.state == 'approved'))
         with:
@@ -133,22 +135,8 @@ jobs:
           find . -maxdepth 2 -path './.git' -prune -o -print
           find $(python -c "import site; print(site.USER_SITE)") -path "*/openziti*" -name "*.so*" -type f -print0 | xargs -0r ldd
           
+          # find core dumps produced by the kernel or valgrind
           shopt -s nullglob
-          # find valgrind logs from both execution steps
-          typeset -a VALGRIND_LOGS=(${GITHUB_WORKSPACE}/*-valgrind-*.log)
-          if (( ${#VALGRIND_LOGS[@]} )); then
-            for LOG in "${VALGRIND_LOGS[@]}"; do
-              if [ -s "$LOG" ]; then
-                echo "DEBUG: Valgrind log: $LOG"
-                cat "$LOG"
-                echo "--- End of $(basename "$LOG") ---"
-              fi
-            done
-          else
-            echo "DEBUG: No Valgrind logs found"
-          fi
-          
-          # find core dumps produced by the kernel and valgrind
           typeset -a CORES=(${GITHUB_WORKSPACE}/core.* ${GITHUB_WORKSPACE}/vgcore.*)
           shopt -u nullglob
           if (( ${#CORES[@]} )); then
@@ -162,3 +150,14 @@ jobs:
           else
             echo "DEBUG: No core dumps found"
           fi
+
+      - name: Upload Valgrind Logs and Core Dumps
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: valgrind-logs-and-core-dumps-${{ github.run_id }}
+          path: |
+            ${{ github.workspace }}/*-valgrind-*.log
+            ${{ github.workspace }}/core.*
+            ${{ github.workspace }}/vgcore.*
+          if-no-files-found: ignore
