@@ -1,7 +1,10 @@
+#!/usr/bin/env python3
+
 import requests
 import openziti
 import json
 import os
+import base64
 
 
 class MattermostWebhookBody:
@@ -20,10 +23,9 @@ class MattermostWebhookBody:
   todoColor = "#FFFFFF"
   watchColor = "#FFD700"
 
-  def __init__(self, username, icon, channel, eventName, eventJsonStr, actionRepo):
+  def __init__(self, username, icon, eventName, eventJsonStr, actionRepo):
     self.username = username
     self.icon = icon
-    self.channel = channel
     self.eventName = eventName.lower()
     self.eventJsonStr = eventJsonStr
     self.actionRepo = actionRepo
@@ -36,7 +38,6 @@ class MattermostWebhookBody:
       # "icon_url": self.icon,
       "username": self.senderJson['login'],
       "icon_url": self.senderJson['avatar_url'],
-      "channel": self.channel,
       "props": {"card": f"```json\n{self.eventJsonStr}\n```"},
     }
 
@@ -351,12 +352,25 @@ class MattermostWebhookBody:
 
 if __name__ == '__main__':
   url = os.getenv("INPUT_WEBHOOKURL")
-  eventJsonStr = os.getenv("INPUT_EVENTJSON")
+
+  # Handle both base64-encoded and direct JSON input
+  eventJsonB64 = os.getenv("INPUT_EVENTJSON_B64")
+  if eventJsonB64:
+    try:
+      eventJsonStr = base64.b64decode(eventJsonB64).decode('utf-8')
+    except Exception as e:
+      print(f"Failed to decode base64 event JSON: {e}")
+      eventJsonStr = os.getenv("INPUT_EVENTJSON")
+  else:
+    eventJsonStr = os.getenv("INPUT_EVENTJSON")
   username = os.getenv("INPUT_SENDERUSERNAME")
   icon = os.getenv("INPUT_SENDERICONURL")
-  channel = os.getenv("INPUT_DESTCHANNEL")
   actionRepo = os.getenv("GITHUB_ACTION_REPOSITORY")
   eventName = os.getenv("GITHUB_EVENT_NAME")
+  zitiLogLevel = os.getenv("INPUT_ZITILOGLEVEL")
+  if zitiLogLevel is not None:
+    os.environ["ZITI_LOG"] = zitiLogLevel
+    os.environ["TLSUV_DEBUG"] = zitiLogLevel
 
   # Setup Ziti identity
   zitiJwt = os.getenv("INPUT_ZITIJWT")
@@ -369,30 +383,101 @@ if __name__ == '__main__':
     print("ERROR: no Ziti identity provided, set INPUT_ZITIID or INPUT_ZITIJWT")
     exit(1)
 
+  def generate_json_schema(obj, max_depth=10, current_depth=0):
+    """Generate a schema representation of a JSON object by inferring types from values."""
+    if current_depth >= max_depth:
+      return "<max_depth_reached>"
+
+    if obj is None:
+      return "null"
+    elif isinstance(obj, bool):
+      return "boolean"
+    elif isinstance(obj, int):
+      return "integer"
+    elif isinstance(obj, float):
+      return "number"
+    elif isinstance(obj, str):
+      return "string"
+    elif isinstance(obj, list):
+      if len(obj) == 0:
+        return "array[]"
+      # Get schema of first element as representative
+      element_schema = generate_json_schema(obj[0], max_depth, current_depth + 1)
+      return f"array[{element_schema}]"
+    elif isinstance(obj, dict):
+      schema = {}
+      for key, value in obj.items():
+        schema[key] = generate_json_schema(value, max_depth, current_depth + 1)
+      return schema
+    else:
+      return f"unknown_type({type(obj).__name__})"
+
+  # Accept only inline JSON for zitiId; do not interpret as file path or base64
+  def _safe_hint(s):
+    if s is None:
+      return "<none>"
+    hint_len = len(s)
+    head = s[:8].replace('\n', ' ')
+    return f"len={hint_len}, startswith='{head}...'"
+
+  try:
+    zitiIdJson = json.loads(zitiId)
+    zitiIdContent = zitiId
+  except Exception as e:
+    print("ERROR: zitiId must be inline JSON (not a file path or base64).")
+    print(f"DEBUG: INPUT_ZITIID hint: {_safe_hint(zitiId)}")
+    print(f"DEBUG: json error: {e}")
+    exit(1)
+
   idFilename = "id.json"
   with open(idFilename, 'w') as f:
-    f.write(zitiId)
-    openziti.load(idFilename)
+    f.write(zitiIdContent)
+
+  # Defer openziti.load() until inside the monkeypatch context to keep
+  # initialization/teardown paired and avoid double-free on shutdown.
 
   # Create webhook body
   try:
-    mwb = MattermostWebhookBody(username, icon, channel, eventName, eventJsonStr, actionRepo)
+    mwb = MattermostWebhookBody(username, icon, eventName, eventJsonStr, actionRepo)
   except Exception as e:
     print(f"Exception creating webhook body: {e}")
     raise e
 
   # Post the webhook over Ziti
-  headers = {'Content-Type': 'application/json'}
-  data = mwb.dumpJson()
+  # Build dict payload; requests will set Content-Type when using json=
+  payload = mwb.body
 
   with openziti.monkeypatch():
+    # Load the identity inside the context so that the same owner tears down
+    # resources, reducing the chance of double shutdown/free.
     try:
-      print(f"Posting webhook to {url} with headers {headers} and data {data}")
-      # breakpoint()
-      r = requests.post(url, headers=headers, data=data)
+      openziti.load(idFilename)
+    except Exception as e:
+      print(f"ERROR: Failed to load Ziti identity: {e}")
+      schema = generate_json_schema(zitiIdJson)
+      print(f"DEBUG: zitiId schema for troubleshooting: {json.dumps(schema, indent=2)}")
+      raise e
+
+    session = None
+    r = None
+    try:
+      session = requests.Session()
+      print(f"Posting webhook to {url} with JSON payload keys {list(payload.keys())}")
+      r = session.post(url, json=payload)
       print(f"Response Status: {r.status_code}")
       print(r.headers)
       print(r.content)
     except Exception as e:
       print(f"Exception posting webhook: {e}")
       raise e
+    finally:
+      try:
+        if r is not None:
+          r.close()
+      except Exception:
+        pass
+      try:
+        if session is not None:
+          session.close()
+      except Exception:
+        pass

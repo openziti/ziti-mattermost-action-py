@@ -17,35 +17,147 @@ on:
 
 jobs:
   mattermost-ziti-webhook:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     name: POST Webhook
     steps:
-      - uses: actions/checkout@v4
-      - name: run hook directly
+      - name: Debug Environment
+        uses: hmarr/debug-action@v3
+
+      - name: Install Debug Tools
+        shell: bash
+        run: sudo apt-get install --yes valgrind gdb
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Python Script Directly
         if: |
-          github.repository_owner == 'openziti'
+          (github.repository_owner == 'openziti' || github.repository_owner == 'netfoundry')
           && ((github.event_name != 'pull_request_review')
           || (github.event_name == 'pull_request_review' && github.event.review.state == 'approved'))
         env:
           INPUT_ZITIID: ${{ secrets.ZITI_MATTERMOST_IDENTITY }}
-          INPUT_WEBHOOKURL: ${{ secrets.ZHOOK_URL }}
+          INPUT_WEBHOOKURL: ${{ secrets.ZHOOK_URL_DEV_NOTIFICATIONS }}
           INPUT_EVENTJSON: ${{ toJson(github.event) }}
           INPUT_SENDERUSERNAME: GitHubZ
-          INPUT_DESTCHANNEL: dev-notifications
           INPUT_SENDERICONURL: https://github.com/fluidicon.png
+          INPUT_ZITILOGLEVEL: 6
+        shell: bash
         run: |
-          pip install --upgrade requests openziti
-          python ./zhook.py
-          
-      - uses: ./  # use self to bring the pain forward
-        name: run action
+          set -o pipefail
+          set -o xtrace
+          pip install --user --upgrade --requirement ./requirements.txt
+          # in case valgrind catches a segfault, it will write a core file in ./vgcore.%p
+          valgrind \
+            --verbose \
+            --log-file=${GITHUB_WORKSPACE}/direct-valgrind-%p-%n.log \
+            --leak-check=yes \
+            python ./zhook.py
+
+      - name: Run in Docker with Core Dumps
         if: |
-          github.repository_owner == 'openziti'
+          always()
+          && (github.repository_owner == 'openziti' || github.repository_owner == 'netfoundry')
+          && ((github.event_name != 'pull_request_review')
+          || (github.event_name == 'pull_request_review' && github.event.review.state == 'approved'))
+        shell: bash
+        env:
+          INPUT_ZITIID: ${{ secrets.ZITI_MATTERMOST_IDENTITY }}
+          INPUT_WEBHOOKURL: ${{ secrets.ZHOOK_URL_DEV_NOTIFICATIONS }}
+          INPUT_EVENTJSON: ${{ toJson(github.event) }}
+          INPUT_SENDERUSERNAME: GitHubZ
+          INPUT_SENDERICONURL: https://github.com/fluidicon.png
+          INPUT_ZITILOGLEVEL: 6
+        run: |
+          set -o pipefail
+          set -o xtrace
+          
+          # Base64 encode JSON to avoid whitespace issues in env file
+          ENCODED_JSON=$(echo "${INPUT_EVENTJSON}" | base64 -w 0)
+          
+          cat > /tmp/docker.env << EOF
+          INPUT_ZITIID=${INPUT_ZITIID}
+          INPUT_WEBHOOKURL=${INPUT_WEBHOOKURL}
+          INPUT_EVENTJSON_B64=${ENCODED_JSON}
+          INPUT_SENDERUSERNAME=${INPUT_SENDERUSERNAME}
+          INPUT_SENDERICONURL=${INPUT_SENDERICONURL}
+          INPUT_ZITILOGLEVEL=${INPUT_ZITILOGLEVEL}
+          GITHUB_WORKSPACE=${GITHUB_WORKSPACE}
+          GITHUB_EVENT_NAME=${GITHUB_EVENT_NAME}
+          GITHUB_ACTION_REPOSITORY=${GITHUB_ACTION_REPOSITORY}
+          EOF
+          
+          # configure the kernel to write core dumps to the workspace directory that is writable by the container in case there is a segfault valgrind cannot catch in a vgcore.%p
+          sudo sysctl -w kernel.core_pattern="${GITHUB_WORKSPACE}/core.%e.%p.%t"
+
+          # build the action's container image so we can source it for the debug image
+          docker build -t zhook-action .
+          docker build -t zhook-action-dbg -f debug.Dockerfile .
+          docker run --rm \
+            --volume "${GITHUB_WORKSPACE}:${GITHUB_WORKSPACE}" \
+            --workdir "${GITHUB_WORKSPACE}" \
+            --env-file /tmp/docker.env \
+            --entrypoint=/bin/bash \
+            zhook-action-dbg -euxo pipefail -c '
+              ulimit -c unlimited;
+              exec valgrind \
+                --verbose \
+                --log-file=${GITHUB_WORKSPACE}/docker-valgrind-%p-%n.log \
+                --leak-check=yes \
+                python /app/zhook.py;
+            '
+
+      - uses: ./
+        name: Run as a GH Action from the Local Checkout
+        if: |
+          always()
+          && (github.repository_owner == 'openziti' || github.repository_owner == 'netfoundry')
           && ((github.event_name != 'pull_request_review')
           || (github.event_name == 'pull_request_review' && github.event.review.state == 'approved'))
         with:
           zitiId: ${{ secrets.ZITI_MATTERMOST_IDENTITY }}
-          webhookUrl: ${{ secrets.ZHOOK_URL }}
+          webhookUrl: ${{ secrets.ZHOOK_URL_DEV_NOTIFICATIONS }}
           eventJson: ${{ toJson(github.event) }}
-          senderUsername: "GitHubZ"
-          destChannel: "dev-notifications"
+          senderUsername: GitHubZ
+          senderIconUrl: https://github.com/fluidicon.png
+          zitiLogLevel: 6
+
+      - name: Print Debug Info
+        if: always()
+        shell: bash
+        run: |
+          set -o xtrace
+          set +o errexit
+          echo "DEBUG: PYTHONPATH=${PYTHONPATH:-}"
+          echo "DEBUG: PATH=${PATH:-}"
+          echo "DEBUG: LD_LIBRARY_PATH=${LD_LIBRARY_PATH:-}"
+          # list non-git files in the two uppermost levels of the workspace directory hierarchy
+          find . -maxdepth 2 -path './.git' -prune -o -print
+          find $(python -c "import site; print(site.USER_SITE)") -path "*/openziti*" -name "*.so*" -type f -print0 | xargs -0r ldd
+          
+          # find core dumps produced by the kernel or valgrind
+          shopt -s nullglob
+          typeset -a CORES=(${GITHUB_WORKSPACE}/core.* ${GITHUB_WORKSPACE}/vgcore.*)
+          shopt -u nullglob
+          if (( ${#CORES[@]} )); then
+            for CORE in "${CORES[@]}"; do
+              if [ -s "$CORE" ]; then
+                echo "DEBUG: Core dump: $CORE"
+                EXECUTABLE=$(basename "$CORE" | cut -d. -f2)
+                gdb -q $(realpath $(which "$EXECUTABLE")) -c "$CORE" --ex bt --ex exit
+              fi
+            done
+          else
+            echo "DEBUG: No core dumps found"
+          fi
+
+      - name: Upload Valgrind Logs and Core Dumps
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: valgrind-logs-and-core-dumps-${{ github.run_id }}
+          path: |
+            ${{ github.workspace }}/*-valgrind-*.log
+            ${{ github.workspace }}/core.*
+            ${{ github.workspace }}/vgcore.*
+          if-no-files-found: ignore
