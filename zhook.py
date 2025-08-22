@@ -444,8 +444,8 @@ if __name__ == '__main__':
     raise e
 
   # Post the webhook over Ziti
-  headers = {'Content-Type': 'application/json'}
-  data = mwb.dumpJson()
+  # Build dict payload; requests will set Content-Type when using json=
+  payload = mwb.body
 
   with openziti.monkeypatch():
     # Load the identity inside the context so that the same owner tears down
@@ -462,8 +462,8 @@ if __name__ == '__main__':
     r = None
     try:
       session = requests.Session()
-      print(f"Posting webhook to {url} with headers {headers} and data {data}")
-      r = session.post(url, headers=headers, data=data)
+      print(f"Posting webhook to {url} with JSON payload keys {list(payload.keys())}")
+      r = session.post(url, json=payload)
       print(f"Response Status: {r.status_code}")
       print(r.headers)
       print(r.content)
