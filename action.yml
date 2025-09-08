@@ -29,4 +29,4 @@ runs:
   using: "docker"
 #  image: "Dockerfile"
   # see README.md on how to update the container or if needed, use "Dockerfile" (the line above)
-  image: ghcr.io/openziti/ziti-mattermost-action-py:latest
+  image: docker://ghcr.io/openziti/ziti-mattermost-action-py:latest
