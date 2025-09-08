@@ -2,6 +2,7 @@ import requests
 import openziti
 import json
 import os
+import sys
 
 
 class MattermostWebhookBody:
@@ -393,6 +394,8 @@ if __name__ == '__main__':
       print(f"Response Status: {r.status_code}")
       print(r.headers)
       print(r.content)
+      sys.exit(0)
     except Exception as e:
       print(f"Exception posting webhook: {e}")
       raise e
+      sys.exit(1)
