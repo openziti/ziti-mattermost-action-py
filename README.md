@@ -52,3 +52,37 @@ The identity can be created by enrolling via the `ziti edge enroll path/to/jwt [
 #### `webhookUrl`
 
 This input value is a Mattermost "Incoming Webhook" URL available over an OpenZiti Network to the identity specified by `zitiId`. This URL should be configured in Mattermost to allow posting to any valid channel with any sender username. The default username will be the `sender.login` from the GitHub Action event.
+
+
+## Updating the Container
+
+
+**1. Build the container**
+```
+docker build -t ghcr.io/openziti/ziti-mattermost-action-py:latest .
+```
+
+**2. Generate PAT with scopes**
+
+* go to https://github.com/settings/tokens
+* choose "Tokens(classic)"
+* Choose "Generate new token" and select "Generate new token (classic)" from the dropdown
+* Add note: "GHCR Deploy Token"
+* choose permissions - write:packages (will also end up with read:packages)
+
+**3. Login + push with PAT**
+
+```bash
+  export PAT='ghp_xxxxxx' # copy leading space to (probably) keep it out of your shell history or edit/source a file
+echo "$PAT" | docker login ghcr.io -u dovholuknf --password-stdin
+```
+
+**4. Push the image**
+```
+docker push ghcr.io/openziti/ziti-mattermost-action-py:latest
+```
+
+**5. Revoke PAT**
+
+* go to https://github.com/settings/tokens
+* delete the token you just added (or not whatever)
