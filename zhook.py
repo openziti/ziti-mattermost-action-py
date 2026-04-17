@@ -784,3 +784,5 @@ Test Mode Examples:
   except Exception as e:
     print(f"Exception posting webhook: {e}")
     raise e
+  finally:
+    openziti.shutdown()
