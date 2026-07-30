@@ -1,2 +1,2 @@
 requests
-openziti==1.6.0
+openziti==1.7.1
