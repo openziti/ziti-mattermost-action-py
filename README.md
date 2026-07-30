@@ -113,3 +113,18 @@ The Action's Docker image is built in-place by the calling GitHub Action runner 
 This is configured in action.yml with `image: Dockerfile` and ensures the Dockerfile in the repository at the called Git ref is used to build the image and run the action.
 
 This allows the Action to be tested with the exact same image that will be used in the GitHub Action.
+
+## Releasing
+
+To simplify consumption of this action in projects the following scheme is implemented:
+
+- releases are tagged with semver tags: `vX.Y.Z` (e.g. `v1.0.0`)
+- `vN` branches point to the latest `vN.x.x` tag (e.g. `v1` -> `v1.0.2`)
+
+This allows automatic updates for minor action releases.
+
+When a new release is ready:
+
+- create a new release/tag (like `v1.0.2`)
+- advance the corresponding release branch to the tag created in the previous step
+
