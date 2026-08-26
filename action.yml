@@ -13,6 +13,10 @@ inputs:
   eventJson:
     description: GitHub event JSON (github.event)
     required: true
+  eventName:
+    description: Overrides GITHUB_EVENT_NAME to pick the message layout
+    required: false
+    default: ""
   senderUsername:
     description: Mattermost username
     required: false

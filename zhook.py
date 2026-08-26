@@ -19,6 +19,7 @@ class MattermostWebhookBody:
   releaseThumbnail = "https://github.com/openziti/branding/blob/main/images/ziggy/closeups/Ziggy-Parties-Closeup.png?raw=true"
   fipsReleaseThumbnail = "https://github.com/openziti/branding/blob/main/images/ziggy/closeups/Ziggy-The-Cop-Closeup.png?raw=true"
   watchThumbnail = "https://github.com/openziti/branding/blob/main/images/ziggy/closeups/Ziggy-is-Star-Struck.png?raw=true"
+  failureThumbnail = "https://github.com/openziti/branding/blob/main/images/ziggy/closeups/Ziggy-Angry-Closeup.png?raw=true"
 
   prColor = "#32CD32"
   pushColor = "#708090"
@@ -26,6 +27,7 @@ class MattermostWebhookBody:
   releaseColor = "#DB7093"
   todoColor = "#FFFFFF"
   watchColor = "#FFD700"
+  failureColor = "#FF0000"
 
   def __init__(self, username, icon, eventName, eventJson, actionRepo):
     self.username = username
@@ -91,6 +93,8 @@ class MattermostWebhookBody:
         self.addFipsPromoteStableDetails()
       else:
         self.addDispatchFallbackDetails()
+    elif eventName == "workflow_failure":
+      self.addWorkflowFailureDetails()
     else:
       self.addDefaultDetails()
 
@@ -418,6 +422,12 @@ class MattermostWebhookBody:
     self.attachment["color"] = self.watchColor
     self.attachment["text"] = bodyText
 
+  def addWorkflowFailureDetails(self):
+    self.body["text"] = self.createTitle()
+    self.attachment["color"] = self.failureColor
+    self.attachment["thumb_url"] = self.failureThumbnail
+    self.attachment["text"] = f"### {self.event['action']}"
+
   def addDefaultDetails(self):
     self.attachment["color"] = self.todoColor
     self.attachment["text"] = self.createTitle()
@@ -702,7 +712,7 @@ Test Mode Examples:
   username = os.getenv("INPUT_SENDERUSERNAME")
   icon = os.getenv("INPUT_SENDERICONURL")
   actionRepo = os.getenv("GITHUB_ACTION_REPOSITORY")
-  eventName = os.getenv("GITHUB_EVENT_NAME")
+  eventName = os.getenv("INPUT_EVENTNAME") or os.getenv("GITHUB_EVENT_NAME")
   zitiLogLevel = os.getenv("INPUT_ZITILOGLEVEL")
   if zitiLogLevel is not None:
     os.environ["ZITI_LOG"] = zitiLogLevel
