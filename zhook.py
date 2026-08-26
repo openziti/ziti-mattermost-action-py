@@ -423,10 +423,10 @@ class MattermostWebhookBody:
     self.attachment["text"] = bodyText
 
   def addWorkflowFailureDetails(self):
-    self.body["text"] = self.createTitle()
+    self.body["text"] = f"Workflow failure by [{self.sender['login']}]({self.sender['html_url']}) in [{self.repo['full_name']}]({self.repo['html_url']})"
     self.attachment["color"] = self.failureColor
     self.attachment["thumb_url"] = self.failureThumbnail
-    self.attachment["text"] = f"### {self.event['action']}"
+    self.attachment["text"] = self.event["action"]
 
   def addDefaultDetails(self):
     self.attachment["color"] = self.todoColor
