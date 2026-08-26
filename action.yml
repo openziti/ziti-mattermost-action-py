@@ -13,8 +13,8 @@ inputs:
   eventJson:
     description: GitHub event JSON (github.event)
     required: true
-  eventName:
-    description: Overrides GITHUB_EVENT_NAME to pick the message layout
+  githubToken:
+    description: github.token, makes a schedule or workflow_dispatch post report the current run as failed and list its failed jobs
     required: false
     default: ""
   senderUsername:
