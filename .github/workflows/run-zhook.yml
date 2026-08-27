@@ -22,7 +22,13 @@ jobs:
     name: Test Run Zhook Script
     steps:
       - name: Debug Environment
-        uses: hmarr/debug-action@v3
+        shell: bash
+        run: |
+          token=$(openssl rand -hex 16)
+          echo "::stop-commands::$token"
+          env | sort
+          cat "$GITHUB_EVENT_PATH"
+          echo "::$token::"
 
       - name: Install Debug Tools
         shell: bash

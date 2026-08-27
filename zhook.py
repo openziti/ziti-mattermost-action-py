@@ -19,6 +19,7 @@ class MattermostWebhookBody:
   releaseThumbnail = "https://github.com/openziti/branding/blob/main/images/ziggy/closeups/Ziggy-Parties-Closeup.png?raw=true"
   fipsReleaseThumbnail = "https://github.com/openziti/branding/blob/main/images/ziggy/closeups/Ziggy-The-Cop-Closeup.png?raw=true"
   watchThumbnail = "https://github.com/openziti/branding/blob/main/images/ziggy/closeups/Ziggy-is-Star-Struck.png?raw=true"
+  failureThumbnail = "https://github.com/openziti/branding/blob/main/images/ziggy/closeups/Ziggy-Angry-Closeup.png?raw=true"
 
   prColor = "#32CD32"
   pushColor = "#708090"
@@ -26,6 +27,7 @@ class MattermostWebhookBody:
   releaseColor = "#DB7093"
   todoColor = "#FFFFFF"
   watchColor = "#FFD700"
+  failureColor = "#FF0000"
 
   def __init__(self, username, icon, eventName, eventJson, actionRepo):
     self.username = username
@@ -85,12 +87,16 @@ class MattermostWebhookBody:
       self.addWatchDetails()
     elif eventName == "workflow_dispatch":
       workflow = self.event.get("workflow", "")
-      if "release" in workflow:
+      if os.getenv("INPUT_GITHUBTOKEN"):
+        self.addFailedRunDetails()
+      elif "release" in workflow:
         self.addFipsReleaseDetails()
       elif "promote" in workflow:
         self.addFipsPromoteStableDetails()
       else:
         self.addDispatchFallbackDetails()
+    elif eventName == "schedule":
+      self.addFailedRunDetails()
     else:
       self.addDefaultDetails()
 
@@ -417,6 +423,23 @@ class MattermostWebhookBody:
     self.attachment["thumb_url"] = self.watchThumbnail
     self.attachment["color"] = self.watchColor
     self.attachment["text"] = bodyText
+
+  def addFailedRunDetails(self):
+    # posted from a job gated on failure(), so the current run failed
+    runUrl = f"{os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}"
+    self.body["text"] = f"Workflow [{os.environ['GITHUB_WORKFLOW']}]({runUrl}) failed in [{self.repo['full_name']}]({self.repo['html_url']})"
+    self.attachment["color"] = self.failureColor
+    self.attachment["thumb_url"] = self.failureThumbnail
+    self.attachment["text"] = "\n".join(self.failedJobs())
+
+  def failedJobs(self):
+    token = os.getenv("INPUT_GITHUBTOKEN")
+    if not token:
+      return []
+    url = f"{os.environ['GITHUB_API_URL']}/repos/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}/jobs?per_page=100"
+    r = requests.get(url, headers={"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json"})
+    r.raise_for_status()
+    return [f"- [{j['name']}]({j['html_url']})" for j in r.json()["jobs"] if j["conclusion"] == "failure"]
 
   def addDefaultDetails(self):
     self.attachment["color"] = self.todoColor
