@@ -430,7 +430,9 @@ class MattermostWebhookBody:
     self.body["text"] = f"Workflow [{os.environ['GITHUB_WORKFLOW']}]({runUrl}) failed in [{self.repo['full_name']}]({self.repo['html_url']})"
     self.attachment["color"] = self.failureColor
     self.attachment["thumb_url"] = self.failureThumbnail
-    self.attachment["text"] = "\n".join(self.failedJobs())
+    # A caller that builds its own event JSON can supply "action" to describe what
+    # actually broke; otherwise fall back to listing the run's failed jobs.
+    self.attachment["text"] = self.event.get("action") or "\n".join(self.failedJobs())
 
   def failedJobs(self):
     token = os.getenv("INPUT_GITHUBTOKEN")
