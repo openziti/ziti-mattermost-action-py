@@ -1,0 +1,11 @@
+{
+  "id": "com.openziti.wide-attachments",
+  "name": "Wide Attachments",
+  "description": "Lets message attachments use the full post width and wraps their text under the thumbnail.",
+  "homepage_url": "https://github.com/openziti/ziti-mattermost-action-py/tree/main/wide-attachments",
+  "version": "0.1.0",
+  "min_server_version": "10.0.0",
+  "webapp": {
+    "bundle_path": "webapp/main.js"
+  }
+}
