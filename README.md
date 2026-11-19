@@ -53,6 +53,12 @@ The identity can be created by enrolling via the `ziti edge enroll path/to/jwt [
 
 This input value is a Mattermost "Incoming Webhook" URL available over an OpenZiti Network to the identity specified by `zitiId`. This URL should be configured in Mattermost to allow posting to any valid channel with any sender username. The default username will be the `sender.login` from the GitHub Action event.
 
+## Card width in Mattermost 12
+
+Mattermost 12 caps message attachments at 700px wide, so these cards fill only part of a wide channel. A webhook
+cannot change that. The [Wide Attachments plugin](wide-attachments/README.md) in this repo removes the cap and wraps
+card text under the thumbnail. A Mattermost system admin installs it once per server.
+
 ## Testing
 
 Test `zhook.py` locally before deploying it as a GitHub Action using the built-in test mode:
