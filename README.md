@@ -74,6 +74,7 @@ The action exits without posting for:
 - a `pull_request_review` that is not an approval.
 - an `issues` event other than `opened`, `closed` or `reopened`.
 - a `push` that creates a branch or tag and has no commits. The `create` event posts the new ref.
+- a `push` that deletes a branch or tag. The `delete` event posts it.
 
 ## Card width in Mattermost 12
 

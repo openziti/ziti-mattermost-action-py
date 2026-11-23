@@ -511,6 +511,8 @@ def _post_skip_reason(eventName, event):
     return f"issues are posted when opened, closed or reopened, not {event['action']}"
   if eventName == "push" and event.get("created") and not event["commits"]:
     return "the push only creates a ref, which the create event posts"
+  if eventName == "push" and event.get("deleted"):
+    return "the push only deletes a ref, which the delete event posts"
   return None
 
 

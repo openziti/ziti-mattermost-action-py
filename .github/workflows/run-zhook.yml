@@ -33,8 +33,6 @@ jobs:
       - name: Run Python Script Directly
         if: |
           (github.repository_owner == 'openziti' || github.repository_owner == 'netfoundry')
-          && ((github.event_name != 'pull_request_review')
-          || (github.event_name == 'pull_request_review' && github.event.review.state == 'approved'))
         env:
           INPUT_ZITIID: ${{ secrets.ZITI_MATTERMOST_IDENTITY }}
           INPUT_WEBHOOKURL: ${{ secrets.ZHOOK_URL_DEV_NOTIFICATIONS }}
@@ -58,8 +56,6 @@ jobs:
         if: |
           always()
           && (github.repository_owner == 'openziti' || github.repository_owner == 'netfoundry')
-          && ((github.event_name != 'pull_request_review')
-          || (github.event_name == 'pull_request_review' && github.event.review.state == 'approved'))
         shell: bash
         env:
           INPUT_ZITIID: ${{ secrets.ZITI_MATTERMOST_IDENTITY }}
@@ -67,6 +63,8 @@ jobs:
           INPUT_SENDERUSERNAME: GitHubZ
           INPUT_SENDERICONURL: https://github.com/fluidicon.png
           INPUT_ZITILOGLEVEL: 6
+          # through env, not pasted into the script, so a quote in a title or body cannot break or inject into it
+          EVENT_JSON: ${{ toJson(github.event) }}
         run: |
           set -o pipefail
           set -o xtrace
@@ -74,7 +72,7 @@ jobs:
           cat > /tmp/docker.env << EOF
           INPUT_ZITIID=${INPUT_ZITIID}
           INPUT_WEBHOOKURL=${INPUT_WEBHOOKURL}
-          INPUT_EVENTJSON=$(base64 -w 0 <<< '${{ toJson(github.event) }}')
+          INPUT_EVENTJSON=$(base64 -w 0 <<< "${EVENT_JSON}")
           INPUT_SENDERUSERNAME=${INPUT_SENDERUSERNAME}
           INPUT_SENDERICONURL=${INPUT_SENDERICONURL}
           INPUT_ZITILOGLEVEL=${INPUT_ZITILOGLEVEL}
@@ -108,8 +106,6 @@ jobs:
         if: |
           always()
           && (github.repository_owner == 'openziti' || github.repository_owner == 'netfoundry')
-          && ((github.event_name != 'pull_request_review')
-          || (github.event_name == 'pull_request_review' && github.event.review.state == 'approved'))
         with:
           zitiId: ${{ secrets.ZITI_MATTERMOST_IDENTITY }}
           webhookUrl: ${{ secrets.ZHOOK_URL_DEV_NOTIFICATIONS }}
