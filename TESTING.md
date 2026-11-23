@@ -26,7 +26,7 @@ python3 zhook.py --test --dry-run
 - `INPUT_ZITIJWT` - Enrollment JWT token
 
 **Webhook URL**:
-- `INPUT_WEBHOOKURL` - Mattermost webhook URL accessible via Ziti
+- `INPUT_WEBHOOKURL` - Mattermost webhook URLs accessible via Ziti, one per line
 - Optional in test mode (defaults to `http://127.0.0.1:2171/post` for httpbin testing)
 
 ## Test Modes

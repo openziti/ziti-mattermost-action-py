@@ -53,6 +53,28 @@ The identity can be created by enrolling via the `ziti edge enroll path/to/jwt [
 
 This input value is a Mattermost "Incoming Webhook" URL available over an OpenZiti Network to the identity specified by `zitiId`. This URL should be configured in Mattermost to allow posting to any valid channel with any sender username. The default username will be the `sender.login` from the GitHub Action event.
 
+A Mattermost incoming webhook is locked to one channel. To post an event to more than one channel, list one webhook
+URL per line:
+
+```yml
+        webhookUrl: |
+          ${{ secrets.ZHOOK_URL_DEV_NOTIFICATIONS }}
+          ${{ secrets.ZHOOK_URL_GITHUB_SIG_CORE }}
+```
+
+The action posts to every URL. If it cannot reach Mattermost for any of them, the step fails after the last one.
+
+When `webhookUrl` or `zitiId` is empty, the action posts nothing and the step passes. Runs from forks get no secrets,
+so they end here.
+
+### Events the action does not post
+
+The action exits without posting for:
+
+- a `pull_request_review` that is not an approval.
+- an `issues` event other than `opened`, `closed` or `reopened`.
+- a `push` that creates a branch or tag and has no commits. The `create` event posts the new ref.
+
 ## Card width in Mattermost 12
 
 Mattermost 12 caps message attachments at 700px wide, so these cards fill only part of a wide channel. A webhook
@@ -94,7 +116,7 @@ python3 zhook.py --test --event-type push --dry-run
 
 - `INPUT_ZITIID`: Ziti identity JSON (required, or use `INPUT_ZITIJWT`)
 - `INPUT_ZITIJWT`: Ziti enrollment JWT (alternative to `INPUT_ZITIID`)
-- `INPUT_WEBHOOKURL`: Mattermost webhook URL (uses default if not set in test mode)
+- `INPUT_WEBHOOKURL`: Mattermost webhook URLs, one per line (uses default if not set in test mode)
 - `INPUT_SENDERUSERNAME`: Override sender username (optional)
 - `INPUT_SENDERICONURL`: Override sender icon URL (optional)
 - `GITHUB_ACTION_REPOSITORY`: Override repository name (optional)
