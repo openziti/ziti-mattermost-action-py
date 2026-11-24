@@ -10,6 +10,10 @@ import openziti
 import requests
 
 
+class WebhookPostError(Exception):
+  pass
+
+
 class MattermostWebhookBody:
   actionRepoIcon = "https://github.com/openziti/branding/blob/main/images/ziggy/png/Ziggy-Gits-It.png?raw=true"
   prThumbnail = "https://github.com/openziti/branding/blob/main/images/ziggy/closeups/Ziggy-Chef-Closeup.png?raw=true"
@@ -500,6 +504,24 @@ def _safe_hint(s):
   return f"len={hint_len}, startswith='{head}...'"
 
 
+def _post_skip_reason(eventName, event):
+  if eventName == "pull_request_review" and event["review"]["state"] != "approved":
+    return "only approved reviews are posted"
+  if eventName == "issues" and event["action"] not in ("opened", "closed", "reopened"):
+    return f"issues are posted when opened, closed or reopened, not {event['action']}"
+  # tag pushes still post: callers subscribed to push tags without create announce versions only this way
+  pushOnlyCreatesBranch = eventName == "push" and event.get("created") and not event["commits"] and event["ref"].startswith("refs/heads/")
+  if pushOnlyCreatesBranch:
+    return "the push only creates a branch, which the create event posts"
+  if eventName == "push" and event.get("deleted"):
+    return "the push only deletes a ref, which the delete event posts"
+  # a preview bot edits one comment as the deploy progresses, so post only the final "Ready" edit
+  if eventName == "issue_comment" and event["sender"]["login"] in ("vercel[bot]", "netfoundry-preview[bot]"):
+    if any(word in event["comment"]["body"] for word in ("Building", "Ignored")):
+      return f"{event['sender']['login']} comments are posted when the preview is ready"
+  return None
+
+
 def generate_json_schema(obj, max_depth=10, current_depth=0):
   """Generate a schema representation of a JSON object by inferring types from values."""
   if current_depth >= max_depth:
@@ -625,7 +647,8 @@ def generate_test_event(event_type):
 def doPost(url, payload):
   """Post webhook payload to the specified URL over Ziti."""
   # Single request doesn't need session management
-  response = requests.post(url, json=payload)
+  # requests has no default timeout, and a stalled Mattermost would otherwise hold the caller's runner
+  response = requests.post(url, json=payload, timeout=30)
   print(f"Response Status: {response.status_code}")
   print(response.headers)
   print(response.content)
@@ -642,7 +665,7 @@ Environment Variables (set by GitHub Actions or manually for testing):
 Required:
   INPUT_ZITIID              Ziti identity JSON (from: secrets.ZITI_IDENTITY)
                             Alternative: INPUT_ZITIJWT for enrollment JWT
-  INPUT_WEBHOOKURL          Mattermost webhook URL (from: secrets.WEBHOOK_URL)
+  INPUT_WEBHOOKURL          Mattermost webhook URLs, one per line (from: secrets.WEBHOOK_URL)
   INPUT_EVENTJSON           GitHub event JSON (from: toJson(github.event))
   GITHUB_EVENT_NAME         Event type (from: github.event_name)
                             Examples: push, pull_request, issues, release
@@ -703,7 +726,8 @@ Test Mode Examples:
     os.environ["GITHUB_ACTION_REPOSITORY"] = os.getenv("GITHUB_ACTION_REPOSITORY", "testuser/testrepo")
     print("")
 
-  url = os.getenv("INPUT_WEBHOOKURL")
+  # one URL per line, since an incoming webhook posts to a single channel
+  urls = [line.strip() for line in os.getenv("INPUT_WEBHOOKURL", "").splitlines() if line.strip()]
 
   # Handle event JSON provided inline; auto-detect if it's JSON or base64-encoded JSON
 
@@ -730,6 +754,19 @@ Test Mode Examples:
   if zitiLogLevel is not None:
     os.environ["ZITI_LOG"] = zitiLogLevel
     os.environ["TLSUV_DEBUG"] = zitiLogLevel
+
+  skipReason = _post_skip_reason(eventName, json.loads(eventJson))
+  if skipReason is not None:
+    print(f"Not posting this {eventName} event: {skipReason}")
+    sys.exit(0)
+
+  # a run from a fork gets no secrets
+  if not urls:
+    print("Not posting: INPUT_WEBHOOKURL is empty")
+    sys.exit(0)
+  if not os.getenv("INPUT_ZITIID") and not os.getenv("INPUT_ZITIJWT"):
+    print("Not posting: INPUT_ZITIID and INPUT_ZITIJWT are empty")
+    sys.exit(0)
 
   # Set up Ziti identity
   zitiJwtInput = os.getenv("INPUT_ZITIJWT")
@@ -785,7 +822,8 @@ Test Mode Examples:
   # Dry-run mode: print payload and exit
   if args.dry_run:
     print("=== DRY RUN MODE: Webhook payload ===")
-    print(f"URL: {url}")
+    for url in urls:
+      print(f"URL: {url}")
     print("Payload:")
     print(json.dumps(payload, indent=2))
     print("=== Dry run complete (not sent) ===")
@@ -800,12 +838,17 @@ Test Mode Examples:
     print(f"DEBUG: zitiIdJson len={len(zitiIdJson) if zitiIdJson else 0}")
     raise e
 
-  # Post the webhook over Ziti
+  # Post the webhook over Ziti, to every channel even when one fails
+  failures = []
   try:
-    print(f"Posting webhook to {url} with JSON payload keys {list(payload.keys())}")
-    response = doPost(url, payload)
-  except Exception as e:
-    print(f"Exception posting webhook: {e}")
-    raise e
+    for url in urls:
+      print(f"Posting webhook to {url} with JSON payload keys {list(payload.keys())}")
+      try:
+        doPost(url, payload)
+      except Exception as e:
+        print(f"Exception posting webhook to {url}: {e}")
+        failures.append(e)
   finally:
     openziti.shutdown()
+  if failures:
+    raise WebhookPostError(f"{len(failures)} of {len(urls)} webhook posts failed") from failures[0]
