@@ -75,6 +75,8 @@ The action exits without posting for:
 - an `issues` event other than `opened`, `closed` or `reopened`.
 - a `push` that creates a branch and has no commits. The `create` event posts the new branch. A tag push still posts.
 - a `push` that deletes a branch or tag. The `delete` event posts it.
+- an `issue_comment` from `vercel[bot]` or `netfoundry-preview[bot]` whose body contains `Building` or `Ignored`. The
+  bot edits the same comment when the preview is ready, and that edit posts.
 
 ## Card width in Mattermost 12
 

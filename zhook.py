@@ -515,6 +515,10 @@ def _post_skip_reason(eventName, event):
     return "the push only creates a branch, which the create event posts"
   if eventName == "push" and event.get("deleted"):
     return "the push only deletes a ref, which the delete event posts"
+  # a preview bot edits one comment as the deploy progresses, so post only the final "Ready" edit
+  if eventName == "issue_comment" and event["sender"]["login"] in ("vercel[bot]", "netfoundry-preview[bot]"):
+    if any(word in event["comment"]["body"] for word in ("Building", "Ignored")):
+      return f"{event['sender']['login']} comments are posted when the preview is ready"
   return None
 
 
