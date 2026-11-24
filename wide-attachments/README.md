@@ -16,14 +16,14 @@ layout. Mobile apps do not run webapp plugins and keep their own layout.
 | --- | --- |
 | [plugin.json](plugin.json) | The plugin manifest. |
 | [webapp/main.js](webapp/main.js) | The whole plugin: a stylesheet and the code that adds and removes it. |
-| [com.openziti.wide-attachments-0.1.0.tar.gz](com.openziti.wide-attachments-0.1.0.tar.gz) | The bundle an admin uploads, built from the files above. |
+| [com.openziti.wide-attachments-0.1.1.tar.gz](com.openziti.wide-attachments-0.1.1.tar.gz) | The bundle an admin uploads, built from the files above. |
 | [build.sh](build.sh) | Packages `plugin.json` and `webapp/main.js` into the bundle. |
 | [release.sh](release.sh) | Builds the bundle and publishes it as a GitHub release. |
 
 ## Build the bundle
 
 The repo holds a built bundle, so an admin can download
-[com.openziti.wide-attachments-0.1.0.tar.gz](com.openziti.wide-attachments-0.1.0.tar.gz) and skip this step. After
+[com.openziti.wide-attachments-0.1.1.tar.gz](com.openziti.wide-attachments-0.1.1.tar.gz) and skip this step. After
 you change `plugin.json` or `webapp/main.js`, rebuild the bundle and commit it with the change:
 
 ```bash
@@ -41,9 +41,9 @@ old bundle and update the links in this README.
 tag the commit and push the tag:
 
 ```bash
-git tag wide-attachments-v0.1.0
-git push origin wide-attachments-v0.1.0
-./wide-attachments/release.sh wide-attachments-v0.1.0
+git tag wide-attachments-v0.1.1
+git push origin wide-attachments-v0.1.1
+./wide-attachments/release.sh wide-attachments-v0.1.1
 ```
 
 The script fails if the tag version does not match `plugin.json`. The release is not marked latest, so the action's
@@ -59,17 +59,18 @@ reloads and changes nothing for other users.
 3. Paste the following and press Enter:
 
    ```js
-   const L = '.mm-blocks-column--stretch > .mm-blocks-container > .mm-blocks-text:first-child';
-   const T = `.mm-blocks-column-set:has(> .mm-blocks-column--auto .mm-blocks-image):has(> ${L})`;
-   const S = `${T} > .mm-blocks-column--stretch > .mm-blocks-container`;
+   const T = '.mm-blocks > .mm-blocks-container > .mm-blocks-container > .mm-blocks-column-set';
+   const S = `${T} > .mm-blocks-column--stretch:not(:last-child) > .mm-blocks-container`;
+   const B = `${S} > :is(` + ['text', 'container', 'column-set', 'image', 'button', 'divider', 'collapsible',
+     'select'].map(b => `.mm-blocks-${b}`).join(', ') + ')';
    document.head.insertAdjacentHTML('beforeend', `<style>
      .mm-blocks { max-width: none !important; }
      ${T} { position: relative; }
-     ${T} > .mm-blocks-column--auto { position: absolute; top: 0; right: 0; }
-     ${T} > ${L}::before { content: ""; float: right; width: 132px; height: 124px; }
+     ${T} > .mm-blocks-column--stretch + .mm-blocks-column--auto { position: absolute; top: 0; right: 0; }
+     ${S}::before { content: ""; float: right; width: 132px; height: 124px; }
      ${S} { display: flow-root !important; }
-     ${S} > * + * { margin-top: 12px; }
-     ${S} > :not(:first-child) { width: auto !important; }
+     ${B} { width: auto !important; }
+     ${B}:not(:first-child) { margin-top: 12px; }
    </style>`);
    ```
 
@@ -88,7 +89,7 @@ Installing needs a system admin. It applies to every user of the web and desktop
 With `mmctl`, steps 2 and 3 are:
 
 ```bash
-mmctl plugin add com.openziti.wide-attachments-0.1.0.tar.gz
+mmctl plugin add com.openziti.wide-attachments-0.1.1.tar.gz
 mmctl plugin enable com.openziti.wide-attachments
 ```
 
@@ -109,22 +110,25 @@ Under **Installed Plugins**, select **Disable** next to **Wide Attachments**, th
 
 ## Limits
 
-- The selectors depend on the `mm-blocks` class names in the Mattermost 12 webapp. If a later Mattermost release
-  renames them, the plugin stops doing anything, and cards fall back to the stock layout.
+- The selectors depend on the `mm-blocks` class names in the Mattermost 11 and 12 webapps. If a later Mattermost
+  release renames them, the plugin stops doing anything, and cards fall back to the stock layout.
 - The spacer that makes room for the thumbnail is 132x124px, sized for the 120px square Ziggy thumbnails this action
   sends. A thumbnail that is wider than it is tall overlaps the first lines of text.
+- The selectors find the thumbnail by its place in the DOM: a column set two containers below `.mm-blocks`, with a
+  stretch column followed by an auto column. If Mattermost changes that nesting, cards fall back to the stock
+  thumbnail column, still at full width.
+- Do not use `:has()` in the stylesheet. Version 0.1.0 did, and Chromium restyled the whole page on each keystroke in
+  the message box: typing lagged by 50-70ms per key in a busy channel. Version 0.1.1 uses only child and sibling
+  selectors, and typing costs the same with the plugin on or off.
 
 ## Effects on other attachments
 
 The plugin applies to every attachment on the server, not only to cards from this action.
 
 - Every attachment from every integration spans the full post width.
-- Only an attachment whose text comes first and that has a thumbnail gets the wrapped layout. Fields, buttons, and
-  images after short text sit beside the thumbnail, as in the stock layout. Other attachments keep the stock
-  thumbnail column.
+- Only an attachment with a thumbnail gets the wrapped layout. Its text wraps under the thumbnail. Fields, buttons,
+  and images sit beside the thumbnail, as in the stock layout.
 - Plain posts, without attachments, do not change.
 - On a narrow screen, such as the web app on a phone browser, the text also wraps under the thumbnail, so a card
   takes less height than in the stock layout.
 - The Mattermost mobile apps do not run webapp plugins, so cards there keep the stock layout.
-- The selectors use the CSS `:has()` selector, which current Chrome, Edge, Firefox, Safari, and the desktop app
-  support. An older browser ignores the rules and shows the stock layout.
