@@ -2,7 +2,7 @@
 # Builds the Wide Attachments plugin bundle and publishes it as a GitHub release for a wide-attachments-vX.Y.Z tag.
 # Needs the gh CLI, authenticated through GH_TOKEN or `gh auth login`.
 #
-#   ./wide-attachments/release.sh wide-attachments-v0.1.0 [owner/repo]
+#   ./wide-attachments/release.sh wide-attachments-v0.1.1 [owner/repo]
 set -euo pipefail
 
 tag="${1:?usage: release.sh <wide-attachments-vX.Y.Z> [owner/repo]}"
