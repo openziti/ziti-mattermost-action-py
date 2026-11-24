@@ -509,8 +509,10 @@ def _post_skip_reason(eventName, event):
     return "only approved reviews are posted"
   if eventName == "issues" and event["action"] not in ("opened", "closed", "reopened"):
     return f"issues are posted when opened, closed or reopened, not {event['action']}"
-  if eventName == "push" and event.get("created") and not event["commits"]:
-    return "the push only creates a ref, which the create event posts"
+  # tag pushes still post: callers subscribed to push tags without create announce versions only this way
+  pushOnlyCreatesBranch = eventName == "push" and event.get("created") and not event["commits"] and event["ref"].startswith("refs/heads/")
+  if pushOnlyCreatesBranch:
+    return "the push only creates a branch, which the create event posts"
   if eventName == "push" and event.get("deleted"):
     return "the push only deletes a ref, which the delete event posts"
   return None
